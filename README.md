@@ -131,4 +131,4 @@ gantt
     6.2 Documentation              :milestone, doc2, 2026-06-23, 0d
     6.3 GitLab                     :milestone, doc3, 2026-06-23, 0d
     Launch                         :milestone, launch, 2026-06-23, 0d
-´´´
+```
