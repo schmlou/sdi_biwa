@@ -93,9 +93,42 @@ For open source projects, say how it is licensed.
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
 
 ```mermaid
-graph TD;
-A-->B;
-A-->C;
-B-->D;
-C-->D;
-```
+gantt
+    dateFormat  YYYY-MM-DD
+    title       Projektplan (Gantt Chart)
+    axisFormat  %d.%m.%Y
+
+    section 1 Project Management
+    1.1 Topic & Abstract           :done,    pm1, 2026-03-03, 2026-03-18
+    1.2 Define Objectives          :done,    pm2, 2026-03-03, 2026-03-10
+    1.3 Literature Review          :active,  pm3, 2026-03-18, 2026-04-04
+    1.4 Define Targetgroup         :active,  pm4, 2026-03-18, 2026-04-04
+    1.5 GitLab setup               :         pm5, 2026-04-14, 2026-04-21
+
+    section 2 Data Acquisition
+    2.1 Data gathering             :active,  da1, 2026-04-21, 2026-04-24
+    2.2 Evaluate data quality      :         da2, 2026-04-24, 2026-04-25
+    2.3 Data into Database         :         da3, 2026-04-25, 7d
+
+    section 3 Data Processing
+    3.1.1 Harmonize cross border   :         dp1, 2026-05-01, 2026-05-05
+    3.1.2 Identify hazard zones    :         dp2, 2026-05-06, 2026-05-15
+    3.1.3 Historic data            :         dp3, 2026-05-06, 2026-05-15
+    3.2.1 API integration          :         dp4, 2026-05-01, 2026-05-10
+    3.2.2 Check Compatibility      :         dp5, 2026-05-10, 2026-05-15
+
+    section 4 SDI Development
+    4.1 Database Setup             :         sdi1, 2026-04-25, 7d
+    4.2 User Interface design      :         sdi2, 2026-05-16, 2026-06-12
+    4.3 First Prototype            :         sdi3, 2026-06-13, 2026-06-14
+
+    section 5 Feedback
+    5.1 Evaluate User feedback     :         fb1, 2026-06-15, 2026-06-20
+    5.2 Apply feedback             :         fb2, 2026-06-21, 2026-06-22
+
+    section 6 Final Presentation & Documentation
+    6.1 SDI publication            :milestone, doc1, 2026-06-23, 0d
+    6.2 Documentation              :milestone, doc2, 2026-06-23, 0d
+    6.3 GitLab                     :milestone, doc3, 2026-06-23, 0d
+    Launch                         :milestone, launch, 2026-06-23, 0d
+´´´
