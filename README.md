@@ -16,7 +16,7 @@ Open-source, hazard map, harmonization
 
 Mary Muthee (MSc Copernicus Master in Digital Earth),
 Louis Schmalisch (MSc Applied Geoinformatics),
-Assad Ullah (MSc Applied Geoinformatics)
+Asad Ullah (MSc Applied Geoinformatics)
 
 ## Project plan
 
