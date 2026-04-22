@@ -29,14 +29,14 @@ gantt
     section 1 Project Management
     1.1 Topic & Abstract           :done,    pm1, 2026-03-03, 2026-03-18
     1.2 Define Objectives          :done,    pm2, 2026-03-03, 2026-03-10
-    1.3 Literature Review          :active,  pm3, 2026-03-18, 2026-04-04
     1.4 Define Targetgroup         :active,  pm4, 2026-03-18, 2026-04-04
     1.5 GitLab setup               :         pm5, 2026-04-14, 2026-04-21
 
     section 2 Data Acquisition
-    2.1 Data gathering             :active,  da1, 2026-04-21, 2026-04-24
-    2.2 Evaluate data quality      :         da2, 2026-04-24, 2026-04-25
-    2.3 Data into Database         :         da3, 2026-04-25, 7d
+    2.1 Literature Review          :active,  pm3, 2026-03-18, 2026-04-04
+    2.2 Data gathering             :active,  da1, 2026-04-21, 2026-04-24
+    2.3 Evaluate data quality      :         da2, 2026-04-24, 2026-04-25
+    2.4 Data into Database         :         da3, 2026-04-25, 7d
 
     section 3 Data Processing
     3.1.1 Harmonize cross border   :         dp1, 2026-05-01, 2026-05-05
