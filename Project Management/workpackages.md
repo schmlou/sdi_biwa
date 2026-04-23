@@ -1,12 +1,12 @@
 | Work Package | Milestone | Due Date | Responsible |
 |---|---|---|---|
 | **WP1 - Project Management** | | | |
-| | D1.1 - Abstract | 2026-03-18 | |
-| | D1.2 - Extended Abstract | 2026-04-04 | |
-| | D1.3 - PiP | 2026-04-12 | |
-| | D1.4 - GitLab initial Setup | 2026-04-21 | |
+| | D1.1 - Abstract | 2026-03-18 | Louis |
+| | D1.2 - Extended Abstract | 2026-04-04 | Louis |
+| | D1.3 - PiP | 2026-04-12 | Louis |
+| | D1.4 - GitLab initial Setup | 2026-04-21 | Louis |
 | **WP2 - Data Acquisition** | | | |
-| | D2.1 - List of Datasets | 2026-04-30 | |
+| | D2.1 - List of Datasets | 2026-04-30 | Asad |
 | **WP3 - Data Processing** | | | |
 | | D3.1 - Processed static Datasets | 2026-05-15 | |
 | | D3.2 - Processed dynamic data | 2026-05-15 | |
