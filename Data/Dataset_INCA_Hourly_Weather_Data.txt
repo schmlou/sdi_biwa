@@ -1,0 +1,10 @@
+Dataset: INCA Hourly Weather Data
+Provider: GeoSphere Austria
+https://data.hub.geosphere.at/dataset/inca-v1-1h-1km
+
+
+Access:
+- API: https://dataset.api.hub.geosphere.at/v1/docs/
+- Web UI: https://dataset.api.hub.geosphere.at/app/frontend/raster/historical/inca-v1-1h-1km
+
+
