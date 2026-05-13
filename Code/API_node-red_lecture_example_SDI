@@ -1,0 +1,128 @@
+[
+    {
+        "id": "9b07b5361fc5fdbe",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "0 0-23 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "Austrian Airports API",
+        "payload": "",
+        "payloadType": "date",
+        "x": 190,
+        "y": 260,
+        "wires": [
+            [
+                "e9bc56699e988e0f"
+            ]
+        ]
+    },
+    {
+        "id": "e9bc56699e988e0f",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "method": "GET",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://aviationweather.gov/api/data/metar?ids=LOWW,LOWS,LOWI,LOWG,LOWL,LOWK&format=json",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 450,
+        "y": 260,
+        "wires": [
+            [
+                "0bacd3870aabd5b1"
+            ]
+        ]
+    },
+    {
+        "id": "0bacd3870aabd5b1",
+        "type": "json",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 650,
+        "y": 260,
+        "wires": [
+            [
+                "b8dfc8d21ac71680"
+            ]
+        ]
+    },
+    {
+        "id": "a432738449327e6d",
+        "type": "postgres",
+        "z": "f6f2187d.f17ca8",
+        "postgresdb": "63ea4af0035b278e",
+        "name": "geoserver22s.zgis.at",
+        "output": false,
+        "perrow": false,
+        "rowspermsg": "1",
+        "return_on_error": false,
+        "limit_queries": "0",
+        "limit_by": "payload",
+        "limit_value": "1",
+        "limit_drop_intermediate": false,
+        "limit_drop_if_in_queue": false,
+        "outputs": false,
+        "x": 860,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "b8dfc8d21ac71680",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 1",
+        "func": "const reports = msg.payload;\nlet sql = \"\";\n\nreports.forEach(r => {\n    // 1. Basic Information Mapping\n    const sid = r.icaoId;\n    const tmp = r.temp ?? 'NULL';\n    const dwp = r.dewp ?? 'NULL';\n    const obs = r.obsTime; // The Unix timestamp from the API\n    const txt = r.rawOb.replace(/'/g, \"''\"); // Escape single quotes for SQL safety\n\n    // 2. Robust Wind Mapping\n    // Checks multiple possible API keys (wdir/windDir and wspd/windSpd)\n    let rawWdir = (r.wdir !== undefined && r.wdir !== null) ? r.wdir : r.windDir;\n    let rawWspd = (r.wspd !== undefined && r.wspd !== null) ? r.wspd : r.windSpd;\n\n    // Convert 'VRB' (Variable) or nulls to database-safe NULL for integer columns\n    const wdir = (rawWdir === null || isNaN(rawWdir)) ? 'NULL' : rawWdir;\n    const wspd = (rawWspd === null || isNaN(rawWspd)) ? 'NULL' : rawWspd;\n\n    // 3. Relative Humidity Calculation (based on Temp and Dewpoint)\n    let hum = 'NULL';\n    if (r.temp !== null && r.dewp !== null) {\n        hum = Math.round(100 * Math.pow((112 - (0.1 * r.temp) + r.dewp) / (112 + (0.9 * r.temp)), 8));\n    }\n\n    // 4. LIVE TABLE: Target the Primary Key (station_id)\n    sql += `INSERT INTO weather_live (station_id, temp_c, humidity, wind_dir, wind_speed_kt, observation_time, raw_text) \n            VALUES ('${sid}', ${tmp}, ${hum}, ${wdir}, ${wspd}, TO_TIMESTAMP(${obs}), '${txt}') \n            ON CONFLICT (station_id) DO UPDATE SET \n            temp_c = EXCLUDED.temp_c, humidity = EXCLUDED.humidity, wind_dir = EXCLUDED.wind_dir, \n            wind_speed_kt = EXCLUDED.wind_speed_kt, observation_time = EXCLUDED.observation_time, raw_text = EXCLUDED.raw_text; `;\n\n    // 5. HISTORY TABLE: Target the unique constraint (unique_hist)\n    sql += `INSERT INTO weather_history (station_id, temp_c, humidity, wind_dir, wind_speed_kt, observation_time, raw_text) \n            VALUES ('${sid}', ${tmp}, ${hum}, ${wdir}, ${wspd}, TO_TIMESTAMP(${obs}), '${txt}')\n            ON CONFLICT ON CONSTRAINT unique_hist DO UPDATE SET \n            temp_c = EXCLUDED.temp_c, humidity = EXCLUDED.humidity, wind_dir = EXCLUDED.wind_dir, wind_speed_kt = EXCLUDED.wind_speed_kt; `;\n\n    // 6. 24H TABLE: Target the unique constraint (unique_24h)\n    sql += `INSERT INTO weather_24h (station_id, temp_c, humidity, wind_dir, wind_speed_kt, observation_time, raw_text) \n            VALUES ('${sid}', ${tmp}, ${hum}, ${wdir}, ${wspd}, TO_TIMESTAMP(${obs}), '${txt}')\n            ON CONFLICT ON CONSTRAINT unique_24h DO UPDATE SET \n            temp_c = EXCLUDED.temp_c, humidity = EXCLUDED.humidity, wind_dir = EXCLUDED.wind_dir, wind_speed_kt = EXCLUDED.wind_speed_kt; `;\n});\n\n// 7. Cleanup: Prune the 24h table of records older than one day\nsql += `DELETE FROM weather_24h WHERE observation_time < NOW() - INTERVAL '24 hours';`;\n\nmsg.payload = sql;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 320,
+        "wires": [
+            [
+                "a432738449327e6d"
+            ]
+        ]
+    },
+    {
+        "id": "63ea4af0035b278e",
+        "type": "postgresdb",
+        "cfgname": "geoserver22s.zgis.at",
+        "hostname": "geoserver22s.zgis.at",
+        "port": 5432,
+        "db": "st26_856263_sde",
+        "ssl": false
+    },
+    {
+        "id": "0e437cd237ca0baf",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-re-postgres": "0.3.4"
+        }
+    }
+]
