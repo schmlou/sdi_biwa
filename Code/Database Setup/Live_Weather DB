@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS sdi_weather_live (
+    id SERIAL PRIMARY KEY,
+    grid_id VARCHAR(50) NOT NULL,
+    source VARCHAR(50) NOT NULL, -- e.g., 'DWD_ICON', 'GEOSPHERE_INCA'
+    timestamp TIMESTAMPTZ NOT NULL,
+    geom GEOMETRY(Point, 4326) NOT NULL,
+    temperature_2m NUMERIC,
+    precipitation_1h NUMERIC,
+    wind_gusts NUMERIC,
+    soil_moisture NUMERIC,
+    snow_depth NUMERIC,
+    CONSTRAINT unique_sdi_live_point UNIQUE (grid_id, source)
+);
+
+-- Spatial index for high-performance GeoServer WMS/WFS rendering
+CREATE INDEX IF NOT EXISTS idx_sdi_weather_live_geom ON sdi_weather_live USING GIST(geom);
