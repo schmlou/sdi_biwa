@@ -1,0 +1,9 @@
+pages:
+  stage: deploy
+  script:
+    - echo "Deploying static site"
+  artifacts:
+    paths:
+      - code
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
