@@ -1,0 +1,140 @@
+[
+    {
+        "id": "bace8ebbbf35b24e",
+        "type": "function",
+        "z": "2616468e9c05ba67",
+        "name": "SQL Builder (Upsert & Clean)",
+        "func": "const html = msg.payload;\n\n// issued_at\nconst issuedMatch = html.match(/(?<date>\\d{2}\\.\\d{2}\\.\\d{4}), um (?<time>\\d{2}:\\d{2}) Uhr/);\nlet issuedAt = null;\nif (issuedMatch) {\n        const parts = issuedMatch.groups.date.split(\".\");\n        issuedAt = parts[2] + \"-\" + parts[1] + \"-\" + parts[0] + \"T\" + issuedMatch.groups.time + \":00+02:00\";\n}\n\n// next_update_at\nconst nextMatch = html.match(/Nächste Aktualisierung am [^,]+, (?<date>\\d{2}\\.\\d{2}\\.\\d{4}), um (?<time>\\d{2}:\\d{2}) Uhr/);\nlet nextUpdate = null;\nif (nextMatch) {\n        const parts = nextMatch.groups.date.split(\".\");\n        nextUpdate = parts[2] + \"-\" + parts[1] + \"-\" + parts[0] + \"T\" + nextMatch.groups.time + \":00+02:00\";\n}\n\n// Statische Werte\nconst region = \"Deutscher Alpenraum\";\nconst issuer = \"Regionale Wetterberatung Süd\";\nconst federalState = \"Bayern\";\nconst rawHtml = html.replace(/'/g, \"''\"); // Hochkommas escapen!\nconst textContent = html.replace(/<[^>]+>/g, \" \").replace(/\\s+/g, \" \").trim().replace(/'/g, \"''\");\nconst validFrom = issuedAt ? issuedAt.substring(0, 10) : null;\n\n// valid_until\nconst validUntilMatch = html.match(/Weitere Aussichten bis zum [^,]+, (?<date>\\d{2}\\.\\d{2}\\.\\d{4})/);\nlet validUntil = null;\nif (validUntilMatch) {\n        const parts = validUntilMatch.groups.date.split(\".\");\n        validUntil = parts[2] + \"-\" + parts[1] + \"-\" + parts[0];\n}\n\nmsg.payload = `INSERT INTO sdi_dwd_alpenwetter \n    (issued_at, next_update_at, region, issuer, federal_state, raw_html, text_content, valid_from, valid_until, geom) \nVALUES \n    ('${issuedAt}', '${nextUpdate}', '${region}', '${issuer}', '${federalState}', '${rawHtml}', '${textContent}', '${validFrom}', '${validUntil}', \n    ST_SetSRID(ST_MakePoint(12.9764, 47.6323), 4326))\nON CONFLICT (issued_at) DO NOTHING;`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 240,
+        "wires": [
+            [
+                "2680b4ae28587b1d"
+            ]
+        ]
+    },
+    {
+        "id": "2680b4ae28587b1d",
+        "type": "postgres",
+        "z": "2616468e9c05ba67",
+        "postgresdb": "63ea4af0035b278e",
+        "name": "geoserver22s.zgis.at",
+        "output": false,
+        "perrow": false,
+        "rowspermsg": "1",
+        "return_on_error": false,
+        "limit_queries": "0",
+        "limit_by": "payload",
+        "limit_value": "1",
+        "limit_drop_intermediate": false,
+        "limit_drop_if_in_queue": false,
+        "outputs": false,
+        "x": 1160,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "fead7b2fd17edef7",
+        "type": "inject",
+        "z": "2616468e9c05ba67",
+        "name": "Trigger API Query",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "05 14 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 260,
+        "wires": [
+            [
+                "0ac9299904d4f3be"
+            ]
+        ]
+    },
+    {
+        "id": "e9df542d733db20e",
+        "type": "function",
+        "z": "2616468e9c05ba67",
+        "name": "function zlib",
+        "func": "msg.payload = zlib.gunzipSync(Buffer.from(msg.payload)).toString('utf8');\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "zlib",
+                "module": "zlib"
+            }
+        ],
+        "x": 590,
+        "y": 320,
+        "wires": [
+            [
+                "bace8ebbbf35b24e"
+            ]
+        ]
+    },
+    {
+        "id": "0ac9299904d4f3be",
+        "type": "http request",
+        "z": "2616468e9c05ba67",
+        "name": "Query Alpenwetter html buf",
+        "method": "GET",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16/alpen_forecast_text_dwms.json",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": true,
+        "authType": "",
+        "senderr": false,
+        "headers": [
+            {
+                "keyType": "other",
+                "keyValue": "Accept-Encoding",
+                "valueType": "other",
+                "valueValue": "identity"
+            }
+        ],
+        "x": 360,
+        "y": 220,
+        "wires": [
+            [
+                "e9df542d733db20e"
+            ]
+        ]
+    },
+    {
+        "id": "63ea4af0035b278e",
+        "type": "postgresdb",
+        "cfgname": "geoserver22s.zgis.at",
+        "hostname": "geoserver22s.zgis.at",
+        "port": 5432,
+        "db": "st26_856263_sde",
+        "ssl": false
+    },
+    {
+        "id": "66c0166a312b3f11",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-re-postgres": "0.3.4"
+        }
+    }
+]
