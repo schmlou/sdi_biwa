@@ -1,0 +1,13 @@
+CREATE TABLE dwd_bulletin (
+    id              SERIAL PRIMARY KEY,
+    issued_at       TIMESTAMPTZ NOT NULL,          -- 2026-06-20 14:00+02
+    next_update_at  TIMESTAMPTZ,                   -- 2026-06-21 14:00+02
+    region          TEXT,                          -- 'Deutscher Alpenraum'
+    issuer          TEXT,                          -- 'Regionale Wetterberatung Süd'
+    federal_state   TEXT,                          -- 'Bayern'
+    raw_html        TEXT,                          -- komplette Response
+    text_content    TEXT,                          -- bereinigter Plaintext
+    valid_from      DATE,                          -- 2026-06-21 (Sonntag)
+    valid_until     DATE,                          -- 2026-06-24 (Dienstag)
+    geom            GEOMETRY(POINT, 4326)          -- Referenzpunkt der Station/Region
+);
