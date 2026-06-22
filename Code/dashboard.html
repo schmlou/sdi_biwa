@@ -486,8 +486,8 @@ function getStatus(props) {
 const BBOX = [12.439350, 47.327912, 13.317175, 47.812075]; // from your GeoServer preview URLs
 
 const basemaps = {
-  terrestris: L.tileLayer.wms('https://ows.terrestris.de/osm/service', { layers: 'OSM-WMS', format: 'image/png', transparent: false, version: '1.1.0', attribution: '© terrestris', maxZoom: 19 }),
-  eox: L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg', { attribution: '© EOX IT Services – S2cloudless 2025', maxZoom: 18 }),
+  terrestris: L.tileLayer.wms('https://ows.terrestris.de/osm/service', { layers: 'OSM-WMS', format: 'image/png', transparent: false, version: '1.1.0', attribution: '© OpenStreetMap contributors, © Natural Earth Data, © GEBCO Bathymetric Compilation Group 2019, © terrestris', maxZoom: 19 }),
+  eox: L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg', { attribution: '© CC-BY EOX IT Services – S2cloudless 2025', maxZoom: 18 }),
 
 };
 
