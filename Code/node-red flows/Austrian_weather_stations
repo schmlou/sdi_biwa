@@ -94,7 +94,7 @@
         "type": "function",
         "z": "f6f2187d.f17ca8",
         "name": "function 1",
-        "func": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\n\nconst year = now.getUTCFullYear();\nconst month = pad(now.getUTCMonth() + 1);\nconst day = pad(now.getUTCDate());\n\n// Aktuelle UTC-Stunde (Daten der laufenden Stunde)\nconst hour = pad(now.getUTCHours());\n\nconst start = `${year}-${month}-${day}T${hour}:00`;\nconst end   = `${year}-${month}-${day}T${hour}:00`;\n\nmsg.url = `https://dataset.api.hub.geosphere.at/v1/station/historical/klima-v2-1h?station_ids=6300,6305,9211,9215,9406,12302,12504&parameters=tl,ff,dd,ffx,rr&start=${start}&end=${end}`;\n\nreturn msg;",
+        "func": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\n\nconst year = now.getUTCFullYear();\nconst month = pad(now.getUTCMonth() + 1);\nconst day = pad(now.getUTCDate());\n\n// Aktuelle UTC-Stunde (Daten der laufenden Stunde)\nconst hour = pad(now.getUTCHours() - 1);\n\nconst start = `${year}-${month}-${day}T${hour}:00`;\nconst end   = `${year}-${month}-${day}T${hour}:00`;\n\nmsg.url = `https://dataset.api.hub.geosphere.at/v1/station/historical/klima-v2-1h?station_ids=6300,6305,9211,9215,9406,12302,12504&parameters=tl,ff,dd,ffx,rr&start=${start}&end=${end}`;\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -139,7 +139,7 @@
         "ssl": false
     },
     {
-        "id": "2c91fc0e48323bfb",
+        "id": "023e0971fe87371d",
         "type": "global-config",
         "env": [],
         "modules": {
