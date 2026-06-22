@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BIWA · Integrated Warning System Berchtesgaden</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep:    #0b0f14;
+  --bg-panel:   #131920;
+  --bg-card:    #1a2330;
+  --bg-hover:   #1f2d3d;
+  --border:     rgba(255,255,255,0.07);
+  --border-lit: rgba(79,195,247,0.3);
+  --ice:        #4fc3f7;
+  --ice-dim:    #1a6a8a;
+  --amber:      #f59e0b;
+  --amber-dim:  #7a4d05;
+  --red:        #ef4444;
+  --red-dim:    #7a1a1a;
+  --green:      #4ade80;
+  --green-dim:  #1a5e30;
+  --purple:     #a78bfa;
+  --text-primary:   #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted:     #475569;
+  --font-ui:   'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --sidebar-w: 280px;
+  --status-h:  42px;
+  --tray-h:    160px;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: var(--text-primary); font-family: var(--font-ui); }
+
+/* STATUS BAR */
+#status-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--status-h);
+  background: var(--bg-panel); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; z-index: 1000;
+}
+#status-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 18px; border-right: 1px solid var(--border);
+  height: 100%; min-width: var(--sidebar-w);
+}
+#status-brand .logo-mark {
+  width: 26px; height: 26px; border-radius: 5px;
+  background: var(--ice); display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: #0b0f14; flex-shrink: 0;
+}
+#status-brand .brand-title { font-weight: 600; font-size: 12px; letter-spacing: 0.05em; }
+#status-brand .brand-sub   { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; }
+
+#alert-level {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; border-right: 1px solid var(--border); height: 100%;
+}
+.pulse-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); animation: pulse-green 2s infinite;
+}
+.pulse-dot.warn  { background: var(--amber); animation: pulse-amber 1.4s infinite; }
+.pulse-dot.alert { background: var(--red);   animation: pulse-red   0.9s infinite; }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5)}  50%{box-shadow:0 0 0 5px rgba(74,222,128,0)} }
+@keyframes pulse-amber { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.6)}  50%{box-shadow:0 0 0 6px rgba(245,158,11,0)} }
+@keyframes pulse-red   { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.7)}   50%{box-shadow:0 0 0 7px rgba(239,68,68,0)} }
+
+#alert-label .level-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--green); text-transform: uppercase; }
+#alert-label .level-tag.warn  { color: var(--amber); }
+#alert-label .level-tag.alert { color: var(--red); }
+#alert-label .level-desc { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+
+#status-metrics { display: flex; align-items: center; flex: 1; height: 100%; overflow: hidden; }
+.status-metric {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 0 18px; border-right: 1px solid var(--border); height: 100%; min-width: 110px;
+}
+.status-metric .sm-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.status-metric .sm-value { font-family: var(--font-mono); font-size: 13px; font-weight: 600; margin-top: 2px; }
+.status-metric .sm-value .unit { font-size: 10px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+
+#status-time { padding: 0 18px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+/* FETCH STATUS BADGE */
+#fetch-status {
+  padding: 0 14px; font-size: 10px; font-family: var(--font-mono);
+  color: var(--text-muted); border-left: 1px solid var(--border); height: 100%;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+#fetch-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
+#fetch-dot.ok    { background: var(--green); }
+#fetch-dot.error { background: var(--red); }
+#fetch-dot.loading { background: var(--amber); animation: pulse-amber 1s infinite; }
+
+/* LAYOUT */
+#app { position: fixed; top: var(--status-h); left: 0; right: 0; bottom: var(--tray-h); display: flex; }
+
+/* SIDEBAR */
+#sidebar {
+  width: var(--sidebar-w); background: var(--bg-panel);
+  border-right: 1px solid var(--border); display: flex;
+  flex-direction: column; overflow-y: auto; flex-shrink: 0; z-index: 500;
+}
+#sidebar::-webkit-scrollbar { width: 4px; }
+#sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sidebar-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+.sidebar-section-title { font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+
+/* layer toggles */
+.layer-item { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; }
+.layer-item:hover { background: var(--bg-hover); }
+.layer-toggle { width: 30px; height: 17px; border-radius: 9px; background: var(--bg-card); border: 1px solid var(--border); position: relative; transition: all 0.2s; flex-shrink: 0; }
+.layer-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--text-muted); transition: all 0.2s; }
+.layer-item.active .layer-toggle { background: var(--ice-dim); border-color: var(--ice); }
+.layer-item.active .layer-toggle::after { left: 15px; background: var(--ice); }
+.layer-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.layer-name { font-size: 12px; font-weight: 500; }
+.layer-src  { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+/* station cards */
+.station-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
+  position: relative; overflow: hidden; cursor: pointer; transition: border-color 0.15s;
+}
+.station-card:hover { border-color: var(--border-lit); }
+.station-card.selected { border-color: var(--ice); }
+.station-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.station-card.ok::before    { background: var(--green); }
+.station-card.warn::before  { background: var(--amber); }
+.station-card.alert::before { background: var(--red); }
+
+.sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.sc-name   { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
+.sc-badge  { font-size: 9px; font-weight: 600; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
+.sc-badge.ok    { background: var(--green-dim); color: var(--green); }
+.sc-badge.warn  { background: var(--amber-dim); color: var(--amber); }
+.sc-badge.alert { background: var(--red-dim);   color: var(--red); }
+
+.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; margin-top: 4px; }
+.sc-metric .scm-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.sc-metric .scm-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+.sc-metric .scm-value .u { font-size: 10px; font-weight: 400; color: var(--text-muted); }
+.sc-updated { font-size: 9px; color: var(--text-muted); margin-top: 6px; font-family: var(--font-mono); }
+
+/* MAP */
+#map { flex: 1; background: var(--bg-deep); position: relative; }
+.leaflet-container { background: #0d1520 !important; }
+.leaflet-control-zoom { border: 1px solid var(--border) !important; background: var(--bg-panel) !important; }
+.leaflet-control-zoom a { background: var(--bg-panel) !important; color: var(--text-secondary) !important; border-bottom: 1px solid var(--border) !important; }
+.leaflet-control-zoom a:hover { background: var(--bg-hover) !important; color: var(--text-primary) !important; }
+.leaflet-control-attribution { background: rgba(13,21,32,0.8) !important; color: var(--text-muted) !important; font-size: 9px !important; }
+
+#map-tools { position: absolute; top: 12px; right: 12px; z-index: 1000; display: flex; flex-direction: column; gap: 6px; }
+.map-tool-btn {
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-radius: 6px; width: 36px; height: 36px; display: flex;
+  align-items: center; justify-content: center; cursor: pointer;
+  color: var(--text-secondary); font-size: 14px; transition: all 0.15s; font-family: var(--font-mono);
+}
+.map-tool-btn:hover { background: var(--bg-hover); border-color: var(--border-lit); color: var(--ice); }
+
+.biwa-popup .leaflet-popup-content-wrapper {
+  background: var(--bg-panel) !important; border: 1px solid var(--border-lit) !important;
+  border-radius: 8px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+  color: var(--text-primary) !important; font-family: var(--font-ui) !important;
+}
+.biwa-popup .leaflet-popup-tip { background: var(--bg-panel) !important; }
+.biwa-popup .leaflet-popup-content { margin: 12px 16px !important; min-width: 200px; }
+.popup-title { font-weight: 600; font-size: 13px; margin-bottom: 8px; color: var(--ice); }
+.popup-row { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+.popup-row:last-child { border: none; }
+.popup-row .pk { color: var(--text-muted); }
+.popup-row .pv { font-family: var(--font-mono); }
+
+/* TRAY */
+#tray {
+  position: fixed; bottom: 0; left: 0; right: 0; height: var(--tray-h);
+  background: var(--bg-panel); border-top: 1px solid var(--border);
+  display: flex; z-index: 600;
+}
+#tray-label {
+  width: var(--sidebar-w); padding: 14px 16px; border-right: 1px solid var(--border);
+  flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;
+}
+#tray-label .tl-title { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+#tray-label .tl-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+#tray-label .tl-hint  { font-size: 10px; color: var(--text-muted); font-style: italic; }
+#tray-label .tl-range { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+
+#tray-charts { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; }
+#tray-charts::-webkit-scrollbar { height: 3px; }
+#tray-charts::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.tray-chart { flex-shrink: 0; width: 160px; padding: 10px 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.tray-chart:last-child { border-right: none; }
+.tc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.tc-name  { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+.tc-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+.tc-canvas-wrap { flex: 1; position: relative; min-height: 0; }
+.tc-canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.tc-threshold-line {
+  position: absolute; left: 0; right: 0; border-top: 1px dashed;
+  font-size: 9px; font-family: var(--font-mono); padding-left: 4px;
+  line-height: 0; padding-top: 2px; pointer-events: none;
+}
+
+/* opacity sliders */
+.layer-opacity-row { display: none; align-items: center; gap: 6px; margin-top: 5px; }
+.layer-item.active .layer-opacity-row { display: flex; }
+.opacity-slider { flex: 1; min-width: 0; cursor: pointer; accent-color: var(--ice); }
+.opacity-pct { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); min-width: 28px; text-align: right; }
+
+/* ALPENWETTER TICKER (inline in status bar) */
+#alpen-ticker {
+  flex: 1; display: flex; align-items: center;
+  overflow: hidden; height: 100%;
+  border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+}
+.ticker-label {
+  padding: 0 14px; font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ice);
+  white-space: nowrap; flex-shrink: 0; height: 100%;
+  border-right: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.ticker-track { flex: 1; overflow: hidden; position: relative; height: 100%; }
+.ticker-inner {
+  display: inline-block; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);
+  padding-left: 100%; line-height: var(--status-h);
+  animation: ticker-scroll 50s linear infinite;
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+/* basemap buttons */
+.bm-btn {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 5px; padding: 5px 10px; font-size: 11px; font-family: var(--font-ui);
+  font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.bm-btn:hover  { border-color: var(--border-lit); color: var(--ice); }
+.bm-btn.active { border-color: var(--ice); color: var(--ice); }
+</style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<header id="status-bar">
+  <div id="status-brand">
+    <div class="logo-mark">B</div>
+    <div>
+      <div class="brand-title">BIWA</div>
+      <div class="brand-sub">Berchtesgaden Warning System</div>
+    </div>
+  </div>
+
+  <div id="alpen-ticker">
+    <div class="ticker-label">
+      <span style="font-size:13px;line-height:1">⛅</span>
+      DWD Alpenwetter
+    </div>
+    <div class="ticker-track">
+      <span class="ticker-inner" id="ticker-text">Loading Alpine weather data…</span>
+    </div>
+  </div>
+
+  <div id="fetch-status">
+    <div id="fetch-dot"></div>
+    <span id="fetch-label">—</span>
+  </div>
+  <div id="status-time">—</div>
+</header>
+
+<!-- MAIN APP -->
+<div id="app">
+  <aside id="sidebar">
+
+    <!-- Layer toggles (moved into Slides section) -->
+
+    <!-- Slides -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Slides</div>
+      <div>
+        <div class="layer-item active" id="toggle-live" onclick="toggleLayer('live', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#4fc3f7"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Live stations</div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-aspect" onclick="toggleSlide('aspect', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#22c55e"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Aspect</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('aspect',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-buildings" onclick="toggleSlide('buildings', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#f59e0b"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Buildings</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('buildings',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-dem" onclick="toggleSlide('dem', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#0ea5e9"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">DEM</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('dem',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-hazard" onclick="toggleSlide('hazard', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#ef4444"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Hazard zones</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hazard',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-hillshade" onclick="toggleSlide('hillshade', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#64748b"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Hillshade</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hillshade',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-protected" onclick="toggleSlide('protected', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#22d3ee"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Protected areas</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('protected',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-roads" onclick="toggleSlide('roads', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#f97316"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Roads</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('roads',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-species" onclick="toggleSlide('species', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#8b5cf6"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Species occurrence</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('species',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+        <div class="layer-item" id="toggle-slope" onclick="toggleSlide('slope', this)">
+          <div class="layer-toggle"></div>
+          <div class="layer-swatch" style="background:#eab308"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">Slope</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('slope',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Basemap (single option: terrestris) -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Basemap</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="bm-btn active" id="bm-terrestris" onclick="setBasemap('terrestris')">OSM WMS (terrestris)</button>
+        <button class="bm-btn" id="bm-eox" onclick="setBasemap('eox')">EOX Sentinel-2</button>
+      </div>
+    </div>
+
+    <!-- Live station cards -->
+    <div class="sidebar-section" id="stations-section">
+      <div class="sidebar-section-title">Live stations <span id="station-count" style="color:var(--text-muted);font-weight:400"></span></div>
+      <div id="station-cards">
+        <div style="font-size:11px;color:var(--text-muted);padding:8px 0;">Fetching from GeoServer…</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAP -->
+  <div id="map">
+    <div id="map-tools">
+      <div class="map-tool-btn" title="Zoom to Berchtesgaden" onclick="map.setView([47.557373, 12.946258], 11)">⌂</div>
+      <div class="map-tool-btn" title="Fullscreen" id="fs-btn">⤢</div>
+      <div class="map-tool-btn" title="Zoom in" onclick="map.zoomIn()" style="margin-top:4px">+</div>
+      <div class="map-tool-btn" title="Zoom out" onclick="map.zoomOut()">−</div>
+    </div>
+  </div>
+</div>
+
+<!-- TRAY -->
+<div id="tray">
+  <div id="tray-label">
+    <div>
+      <div class="tl-title">Weather history last 7 days</div>
+      <div class="tl-sub" id="tl-sub">Alle Stationen</div>
+      <div class="tl-hint" id="tl-hint">Lade Verlaufsdaten…</div>
+    </div>
+    <div class="tl-range" id="tray-range"></div>
+  </div>
+  <div id="tray-charts"></div>
+</div>
+
+<script>
+/* ── CONFIG ──────────────────────────────────────────── */
+const GS  = 'https://geoserver22s.zgis.at/geoserver';
+const WS  = 'ipsdi_st26';
+const WFS = `${GS}/${WS}/wfs?service=WFS&version=1.1.0&request=GetFeature&outputFormat=application/json&srsName=EPSG:32632`;
+
+/* ── STATION NAMES ───────────────────────────────────── */
+const STATION_NAMES = {
+  6300:  'Salzburg Flughafen',
+  6305:  'Salzburg Freisaal',
+  9211:  'Lofer Ort',
+  9215:  'Loferer Alm',
+  9406:  'Golling',
+  12302: 'Saalbach',
+  12504: 'Bischofshofen',
+};
+function stationName(gridId) { return STATION_NAMES[+gridId] ?? `Station ${gridId}`; }
+
+/* ── THRESHOLDS ─────────────────────────────────────── */
+const THR = {
+  precipitation_1h: { warn: 10,  alert: 20  },
+  wind_gusts:       { warn: 80,  alert: 120 },
+  snow_depth:       { warn: 100, alert: 200 },
+};
+
+function getStatus(props) {
+  for (const [key, t] of Object.entries(THR)) {
+    const v = props[key];
+    if (v == null) continue;
+    if (v >= t.alert) return 'alert';
+    if (v >= t.warn)  return 'warn';
+  }
+  return 'ok';
+}
+
+/* ── MAP INIT ─────────────────────────────────────────── */
+const BBOX = [12.439350, 47.327912, 13.317175, 47.812075]; // from your GeoServer preview URLs
+
+const basemaps = {
+  terrestris: L.tileLayer.wms('https://ows.terrestris.de/osm/service', { layers: 'OSM-WMS', format: 'image/png', transparent: false, version: '1.1.0', attribution: '© terrestris', maxZoom: 19 }),
+  eox: L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg', { attribution: '© EOX IT Services – S2cloudless 2025', maxZoom: 18 }),
+
+};
+
+const slideLayers = {
+  species: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:Species_occurence_Berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  aspect: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:aspect_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  buildings: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:buildings_Berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  dem: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:dem_berchtesgaden_merged', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  hazard: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:hazard_zones_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  hillshade: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:hillshade_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  protected: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:protected_areas_Berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  roads: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:roads_32n', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  slope: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:slope_berchtesgaden_2', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  alpenwetter: L.tileLayer.wms(`${GS}/wms`, {
+    layers: 'ipsdi_st26:sdi_dwd_alpenwetter', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'DWD / GeoServer', opacity: 0.7}),
+};
+
+const map = L.map('map', { center: [47.557373, 12.946258], zoom: 11, layers: [basemaps.terrestris], zoomControl: false });
+
+let activeBasemap = 'terrestris';
+function setBasemap(name) {
+  if (activeBasemap === name) return;
+  map.removeLayer(basemaps[activeBasemap]);
+  map.addLayer(basemaps[name]);
+  activeBasemap = name;
+  document.querySelectorAll('.bm-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('bm-' + name);
+  if (el) el.classList.add('active');
+}
+
+/* ── WMS LAYER (styled raster from GeoServer) ─────────── */
+let GRID_ID_FIELD = 'grid_id'; // auto-detected from first WFS response
+
+/* ── LAYER VISIBILITY STATE ───────────────────────────── */
+let liveGeoJSON = null;
+const slideState = {
+  species: false,
+  aspect: false,
+  buildings: false,
+  dem: false,
+  hazard: false,
+  hillshade: false,
+  protected: false,
+  roads: false,
+  slope: false,
+  alpenwetter: true,
+};
+const layerState = { live: true };
+
+function toggleLayer(name, el) {
+  el.classList.toggle('active');
+  layerState[name] = el.classList.contains('active');
+
+  if (name === 'live' && liveGeoJSON) {
+    layerState.live ? map.addLayer(liveGeoJSON) : map.removeLayer(liveGeoJSON);
+  }
+}
+
+function toggleSlide(name, el) {
+  el.classList.toggle('active');
+  slideState[name] = el.classList.contains('active');
+  const layer = slideLayers[name];
+  if (!layer) return;
+  if (slideState[name]) {
+    map.addLayer(layer);
+    if (name === 'alpenwetter') showAlpenTicker();
+  } else {
+    map.removeLayer(layer);
+    if (name === 'alpenwetter') hideAlpenTicker();
+  }
+}
+
+function setLayerOpacity(name, value, sliderEl) {
+  if (sliderEl) sliderEl.nextElementSibling.textContent = Math.round(value * 100) + '%';
+  if (name === 'live') {
+    if (liveGeoJSON) {
+      liveGeoJSON.eachLayer(layer => {
+        const isSelected = layer.feature?.properties?.grid_id === selectedStation;
+        layer.setStyle({ opacity: value, fillOpacity: value * (isSelected ? 0.75 : 0.35) });
+      });
+    }
+  } else if (slideLayers[name]) {
+    slideLayers[name].setOpacity(value);
+  }
+}
+
+/* ── FETCH HELPERS ────────────────────────────────────── */
+function setFetchState(state, label) {
+  const dot = document.getElementById('fetch-dot');
+  dot.className = state;
+  document.getElementById('fetch-label').textContent = label;
+}
+
+function fmt(v, dec=1) { return v != null ? Number(v).toFixed(dec) : '—'; }
+function fmtTime(ts)   { return ts ? new Date(ts).toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' }) : '—'; }
+function fmtDate(ts)   { return ts ? new Date(ts).toLocaleDateString('de-AT', { day:'2-digit', month:'short' }) : '—'; }
+
+/* ── LIVE WFS STATIONS ────────────────────────────────── */
+let selectedStation = null;
+let selectedLiveLayer = null;
+
+function getLiveLayer(gridId) {
+  if (!liveGeoJSON) return null;
+  let hit = null;
+  liveGeoJSON.eachLayer(layer => {
+    if (layer.feature?.properties?.grid_id === gridId) hit = layer;
+  });
+  return hit;
+}
+
+function updateActiveStationLayer(layer) {
+  if (!layer) return;
+  if (selectedLiveLayer && selectedLiveLayer !== layer) {
+    selectedLiveLayer.setStyle({ weight: 1.5, fillOpacity: 0.85 });
+    selectedLiveLayer.bringToBack();
+  }
+  selectedLiveLayer = layer;
+  layer.setStyle({ weight: 2.5, fillOpacity: 1 });
+  layer.bringToFront();
+}
+
+function restoreSelectedStation() {
+  if (!selectedStation) return;
+  const layer = getLiveLayer(selectedStation);
+  if (layer) updateActiveStationLayer(layer);
+}
+
+async function loadLiveStations() {
+  setFetchState('loading', 'Fetching…');
+  try {
+    const url = `${WFS}&TYPENAME=sdi_weather_live`;
+    console.log('Live WFS URL:', url);
+    const res = await fetch(url);
+    const text = await res.text();
+    if (!res.ok) { console.error('Live WFS error:', res.status, text); throw new Error(`HTTP ${res.status}`); }
+    let fc;
+    try { fc = JSON.parse(text); }
+    catch(e) { console.error('Live WFS response (not JSON):', text.slice(0, 1000)); throw e; }
+
+    if (liveGeoJSON) map.removeLayer(liveGeoJSON);
+
+    // Auto-detect the station ID field name
+    if (fc.features.length > 0) {
+      const props = fc.features[0].properties;
+      GRID_ID_FIELD = ['grid_id','station_id','id','fid'].find(k => props[k] != null) ?? GRID_ID_FIELD;
+      console.log('ID field:', GRID_ID_FIELD, '| props:', Object.keys(props));
+    }
+
+    liveGeoJSON = L.geoJSON(fc, {
+      pointToLayer: (feature, latlng) => {
+        const p      = feature.properties;
+        const status = getStatus(p);
+        const color  = status === 'alert' ? '#ef4444' : status === 'warn' ? '#f59e0b' : '#4fc3f7';
+        return L.circleMarker(latlng, {
+          radius: 7, color, fillColor: color,
+          fillOpacity: 0.85, weight: 1.5
+        });
+      },
+      onEachFeature: (feature, layer) => {
+        const p  = feature.properties;
+        const id = p[GRID_ID_FIELD];
+        layer.bindPopup(`
+          <div class="popup-title">${stationName(id)}</div>
+          <div class="popup-row"><span class="pk">Temperature</span><span class="pv">${fmt(p.temperature_2m)} °C</span></div>
+          <div class="popup-row"><span class="pk">Precipitation</span><span class="pv">${fmt(p.precipitation_1h)} mm</span></div>
+          <div class="popup-row"><span class="pk">Wind gusts</span><span class="pv">${fmt(p.wind_gusts, 0)} km/h</span></div>
+          <div class="popup-row"><span class="pk">Snow depth</span><span class="pv">${fmt(p.snow_depth, 0)} cm</span></div>
+          <div class="popup-row"><span class="pk">Soil moisture</span><span class="pv">${fmt(p.soil_moisture, 3)} m³/m³</span></div>
+          <div class="popup-row"><span class="pk">Updated</span><span class="pv">${fmtTime(p.timestamp)}</span></div>
+        `, { className: 'biwa-popup' });
+
+        layer.on('click', () => {
+          selectedStation = id;
+          highlightCard(id);
+          updateActiveStationLayer(layer);
+          loadStationHistory(id);
+        });
+      }
+    });
+
+    if (layerState.live) {
+      liveGeoJSON.addTo(map);
+      restoreSelectedStation();
+    }
+
+    // Update status bar with average across all stations
+    const props = fc.features.map(f => f.properties);
+    updateStatusBar(props);
+    renderStationCards(props);
+
+    setFetchState('ok', `Updated ${new Date().toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' })}`);
+    updateClock();
+
+  } catch (err) {
+    console.error('WFS live fetch failed:', err);
+    setFetchState('error', 'Fetch failed');
+  }
+}
+
+function avg(props, key) {
+  const vals = props.map(p => p[key]).filter(v => v != null && !isNaN(v));
+  return vals.length ? vals.reduce((a, b) => a + Number(b), 0) / vals.length : null;
+}
+
+function updateStatusBar(props) {
+  // Overall alert state
+  const overallStatus = props.map(p => getStatus(p));
+  const overall = overallStatus.includes('alert') ? 'alert'
+                : overallStatus.includes('warn')  ? 'warn' : 'ok';
+
+}
+
+function renderStationCards(props) {
+  document.getElementById('station-count').textContent = `(${props.length})`;
+  const container = document.getElementById('station-cards');
+  container.innerHTML = props.map(p => {
+    const id     = p[GRID_ID_FIELD];
+    const status = getStatus(p);
+    const badge  = status === 'alert' ? 'ALERT' : status === 'warn' ? 'WARN' : 'OK';
+    return `
+      <div class="station-card ${status} ${selectedStation === id ? 'selected' : ''}"
+           id="card-${id}" onclick="selectStation('${id}')">
+        <div class="sc-header">
+          <div class="sc-name">${stationName(id)}</div>
+          <div class="sc-badge ${status}">${badge}</div>
+        </div>
+        <div class="sc-grid">
+          <div class="sc-metric">
+            <div class="scm-label">Temp</div>
+            <div class="scm-value">${fmt(p.temperature_2m)}<span class="u"> °C</span></div>
+          </div>
+          <div class="sc-metric">
+            <div class="scm-label">Precip</div>
+            <div class="scm-value">${fmt(p.precipitation_1h)}<span class="u"> mm</span></div>
+          </div>
+          <div class="sc-metric">
+            <div class="scm-label">Wind</div>
+            <div class="scm-value">${fmt(p.wind_gusts, 0)}<span class="u"> km/h</span></div>
+          </div>
+          <div class="sc-metric">
+            <div class="scm-label">Snow</div>
+            <div class="scm-value">${fmt(p.snow_depth, 0)}<span class="u"> cm</span></div>
+          </div>
+        </div>
+        <div class="sc-updated">Last reading: ${fmtTime(p.timestamp)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function selectStation(gridId) {
+  selectedStation = gridId;
+  highlightCard(gridId);
+  const layer = getLiveLayer(gridId);
+  if (layer) {
+    updateActiveStationLayer(layer);
+    map.panTo(layer.getLatLng());
+    layer.openPopup();
+  }
+  loadStationHistory(gridId);
+}
+
+function highlightCard(gridId) {
+  document.querySelectorAll('.station-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('card-' + gridId);
+  if (card) card.classList.add('selected');
+}
+
+/* ── HISTORY WFS (7-day histograms) ──────────────────── */
+const SKIP_PROPS  = new Set(['grid_id','station_id','id','fid','source','geom','geometry','the_geom']);
+const HIST_COLORS = ['#a78bfa','#4fc3f7','#f59e0b','#4ade80','#f97316','#22d3ee','#ec4899','#84cc16'];
+
+const COLUMN_UNITS = {
+  temperature_2m:    '°C',
+  temperature:       '°C',
+  precipitation_1h:  'mm',
+  precipitation:     'mm',
+  wind_gusts:        'km/h',
+  wind_speed:        'km/h',
+  wind_direction:    '°',
+  snow_depth:        'cm',
+  soil_moisture:     'm³/m³',
+  pressure:          'hPa',
+  humidity:          '%',
+  radiation:         'W/m²',
+};
+
+function fmtColName(k) {
+  const label = k.replace(/_/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+  const unit  = COLUMN_UNITS[k];
+  return unit ? `${label} (${unit})` : label;
+}
+
+function buildHistogram(values, bins = 12) {
+  const valid = values.filter(v => v != null && !isNaN(v)).map(Number);
+  if (!valid.length) return null;
+  const min = Math.min(...valid), max = Math.max(...valid);
+  if (min === max) return { counts: [valid.length], edges: [min], min, max };
+  const size = (max - min) / bins;
+  const counts = new Array(bins).fill(0);
+  valid.forEach(v => { const i = Math.min(Math.floor((v - min) / size), bins - 1); counts[i]++; });
+  const edges = Array.from({ length: bins }, (_, i) => +(min + i * size).toFixed(2));
+  return { counts, edges, min, max };
+}
+
+function drawHistogramChart(canvas, hist, color) {
+  if (!canvas || !hist) return;
+  const wrap = canvas.parentElement;
+  const W = wrap.offsetWidth, H = wrap.offsetHeight;
+  if (!W || !H) return;
+  canvas.width  = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const pad = { l: 2, r: 2, t: 4, b: 2 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const maxCount = Math.max(...hist.counts, 1);
+  const bw = cw / hist.counts.length;
+  hist.counts.forEach((count, i) => {
+    const bh = (count / maxCount) * ch;
+    const x = pad.l + i * bw, y = pad.t + ch - bh;
+    ctx.fillStyle = color + 'aa';
+    ctx.fillRect(x + 1, y, bw - 2, bh);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(x + 1, y, bw - 2, bh);
+  });
+  // mean line
+  const mean = hist.edges.reduce((s, e, i) => s + e * hist.counts[i], 0) /
+               Math.max(hist.counts.reduce((a, b) => a + b, 0), 1);
+  const mx = pad.l + ((mean - hist.min) / (hist.max - hist.min || 1)) * cw;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.moveTo(mx, pad.t); ctx.lineTo(mx, pad.t + ch); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function renderHistograms(rows, label) {
+  const cols = Object.keys(rows[0]).filter(k => {
+    if (SKIP_PROPS.has(k) || /time|date|stamp/i.test(k)) return false;
+    const v = rows.find(r => r[k] != null)?.[k];
+    return v != null && !isNaN(Number(v));
+  });
+  const container = document.getElementById('tray-charts');
+  container.innerHTML = cols.map((col, i) => {
+    const color  = HIST_COLORS[i % HIST_COLORS.length];
+    const values = rows.map(r => r[col]);
+    const hist   = buildHistogram(values);
+    const last   = values.filter(v => v != null).at(-1);
+    return `
+      <div class="tray-chart">
+        <div class="tc-header">
+          <div class="tc-name">${fmtColName(col)}</div>
+          <div class="tc-value" style="color:${color}">${last != null ? Number(last).toFixed(1) : '—'}</div>
+        </div>
+        <div class="tc-canvas-wrap"><canvas id="hc-${i}"></canvas></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">
+          <span>${hist ? Number(hist.min).toFixed(1) : ''}</span>
+          <span>${hist ? Number(hist.max).toFixed(1) : ''}</span>
+        </div>
+      </div>`;
+  }).join('');
+  requestAnimationFrame(() => {
+    cols.forEach((col, i) => {
+      drawHistogramChart(document.getElementById(`hc-${i}`),
+        buildHistogram(rows.map(r => r[col])), HIST_COLORS[i % HIST_COLORS.length]);
+    });
+  });
+}
+
+async function fetchHistory(cqlFilter) {
+  let url = `${WFS}&TYPENAME=sdi_weather_history_7d`;
+  if (cqlFilter) url += `&CQL_FILTER=${cqlFilter}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  if (!res.ok) { console.error('History error:', res.status, text); throw new Error(`HTTP ${res.status}`); }
+  try { return JSON.parse(text); }
+  catch(e) { console.error('History not JSON:', text.slice(0,500)); throw e; }
+}
+
+async function loadAllHistory() {
+  document.getElementById('tl-sub').textContent  = 'Alle Stationen';
+  document.getElementById('tl-hint').textContent = 'Lade Verlaufsdaten…';
+  try {
+    const fc   = await fetchHistory(null);
+    const rows = fc.features.map(f => f.properties);
+    if (!rows.length) { document.getElementById('tl-hint').textContent = 'Keine Daten'; return; }
+    const dates = rows.map(r => r.timestamp).filter(Boolean).sort();
+    const nStations = new Set(rows.map(r => r[GRID_ID_FIELD])).size;
+    document.getElementById('tl-hint').textContent  = `${rows.length} Messwerte · ${nStations} Stationen`;
+    document.getElementById('tray-range').textContent = dates.length ? `${fmtDate(dates[0])} → ${fmtDate(dates.at(-1))}` : '';
+    renderHistograms(rows);
+  } catch(err) {
+    console.error('loadAllHistory failed:', err);
+    document.getElementById('tl-hint').textContent = 'Fehler beim Laden';
+  }
+}
+
+async function loadStationHistory(gridId) {
+  document.getElementById('tl-sub').textContent  = stationName(gridId);
+  document.getElementById('tl-hint').textContent = 'Lade Verlauf…';
+  try {
+    const fc   = await fetchHistory(`${GRID_ID_FIELD}='${gridId}'`);
+    const rows = fc.features.map(f => f.properties)
+                            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    if (!rows.length) {
+      document.getElementById('tl-hint').textContent = 'Keine Verlaufsdaten';
+      document.getElementById('tray-charts').innerHTML = '';
+      document.getElementById('tray-range').textContent = '';
+      return;
+    }
+    document.getElementById('tl-hint').textContent   = `${rows.length} Messwerte`;
+    document.getElementById('tray-range').textContent = `${fmtDate(rows[0].timestamp)} → ${fmtDate(rows.at(-1).timestamp)}`;
+    renderHistograms(rows);
+  } catch(err) {
+    console.error('loadStationHistory failed:', err);
+    document.getElementById('tl-hint').textContent = 'Fehler beim Laden';
+    document.getElementById('tray-range').textContent = '';
+  }
+}
+
+
+/* ── DWD ALPENWETTER TICKER ────────────────────────────── */
+function showAlpenTicker() { loadAlpenweatherText(); }
+function hideAlpenTicker() { document.getElementById('ticker-text').textContent = ''; }
+
+async function loadAlpenweatherText() {
+  try {
+    const url = `${WFS}&TYPENAME=sdi_dwd_alpenwetter`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const fc = await res.json();
+    const features = fc.features;
+
+    if (!features.length) {
+      setTickerText('DWD Alpenwetter · Keine Daten verfügbar · ' + new Date().toLocaleDateString('de-AT'));
+      return;
+    }
+
+    const segments = features.map(f => f.properties.text_content).filter(Boolean);
+
+    setTickerText(segments.length ? segments.join('   ◆   ') : 'DWD Alpine Weather layer active.');
+  } catch (err) {
+    console.warn('Alpenwetter WFS fetch failed:', err);
+    setTickerText(
+      'DWD Alpenwetter · Deutsche Wetterdienst · Alpine Forecast · Berchtesgaden Region · ' +
+      new Date().toLocaleDateString('de-AT', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+    );
+  }
+}
+
+function setTickerText(text) {
+  const el = document.getElementById('ticker-text');
+  el.textContent = text;
+  const estimatedPx = text.length * 7;
+  const duration = Math.max(15, estimatedPx / 80);
+  el.style.animationDuration = duration + 's';
+}
+
+/* ── CLOCK ────────────────────────────────────────────── */
+function updateClock() {
+  const now = new Date();
+  const p   = n => String(n).padStart(2, '0');
+  document.getElementById('status-time').textContent =
+    `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+}
+setInterval(updateClock, 1000);
+
+/* ── FULLSCREEN ───────────────────────────────────────── */
+document.getElementById('fs-btn').addEventListener('click', () => {
+  document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+});
+
+/* ── BOOT ─────────────────────────────────────────────── */
+map.addLayer(slideLayers.alpenwetter);
+showAlpenTicker();
+loadLiveStations();
+loadAllHistory();
+setInterval(loadLiveStations, 60_000);
+setTimeout(() => map.invalidateSize(), 200);
+</script>
+</body>
+</html>
