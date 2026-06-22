@@ -1,0 +1,149 @@
+[
+    {
+        "id": "e9bc56699e988e0f",
+        "type": "http request",
+        "z": "f6f2187d.f17ca8",
+        "name": "Query GeoSphere Stations",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 620,
+        "y": 220,
+        "wires": [
+            [
+                "b8dfc8d21ac71680",
+                "8c7a40d75d49cee9"
+            ]
+        ]
+    },
+    {
+        "id": "b8dfc8d21ac71680",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "SQL Builder weather_history",
+        "func": "const features = msg.payload.features;\nconst timestamp = msg.payload.timestamps[0];\nlet sql = \"\";\n\nfeatures.forEach(f => {\n        const station_id = f.properties.station;\n        const coords = f.geometry.coordinates;\n        const lon = coords[1];\n        const lat = coords[0];\n        const p = f.properties.parameters;\n\n        const tl = p.tl.data[0] ?? 'NULL';\n        const rr = p.rr.data[0] ?? 'NULL';\n        const ffx = p.ffx.data[0] ?? 'NULL';\n        const ff = p.ff.data[0] ?? 'NULL';\n        const dd = p.dd.data[0] ?? 'NULL';\n\n        sql += `INSERT INTO s1118832.sdi_weather_history_7d \n        (timestamp, geom, temperature_2m, precipitation_1h, wind_gusts, wind_speed, wind_direction, station_id)\n    VALUES \n        ('${timestamp}', ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326), \n        ${tl}, ${rr}, ${ffx}, ${ff}, ${dd}, ${station_id})\n    ON CONFLICT DO NOTHING; `;\n});\n\nmsg.payload = sql;\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
+        "y": 160,
+        "wires": [
+            [
+                "a432738449327e6d"
+            ]
+        ]
+    },
+    {
+        "id": "a432738449327e6d",
+        "type": "postgres",
+        "z": "f6f2187d.f17ca8",
+        "postgresdb": "63ea4af0035b278e",
+        "name": "geoserver22s.zgis.at",
+        "output": false,
+        "perrow": false,
+        "rowspermsg": "1",
+        "return_on_error": false,
+        "limit_queries": "0",
+        "limit_by": "payload",
+        "limit_value": "1",
+        "limit_drop_intermediate": false,
+        "limit_drop_if_in_queue": false,
+        "outputs": 0,
+        "x": 1240,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "67cfa5afbcaa1089",
+        "type": "inject",
+        "z": "f6f2187d.f17ca8",
+        "name": "Trigger API Query",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "5 0-23 * * *",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 210,
+        "y": 220,
+        "wires": [
+            [
+                "f7722cc4db825460"
+            ]
+        ]
+    },
+    {
+        "id": "f7722cc4db825460",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "function 1",
+        "func": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\n\nconst year = now.getUTCFullYear();\nconst month = pad(now.getUTCMonth() + 1);\nconst day = pad(now.getUTCDate());\n\n// Letzte volle Stunde\nconst hour = pad(now.getUTCHours() - 1);\n\nconst start = `${year}-${month}-${day}T${hour}:00`;\nconst end = `${year}-${month}-${day}T${hour}:00`;\n\nmsg.url = `https://dataset.api.hub.geosphere.at/v1/station/historical/klima-v2-1h?station_ids=6300,6305,9211,9215,9406,12302,12504&parameters=tl,ff,dd,ffx,rr&start=${start}&end=${end}`;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 220,
+        "wires": [
+            [
+                "e9bc56699e988e0f"
+            ]
+        ]
+    },
+    {
+        "id": "8c7a40d75d49cee9",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "SQL Builder weather_live",
+        "func": "const features = msg.payload.features;\nconst timestamp = msg.payload.timestamps[0];\nlet sql = \"\";\n\nfeatures.forEach(f => {\n    const station_id = f.properties.station;\n    const coords = f.geometry.coordinates;\n    const lon = coords[1];\n    const lat = coords[0];\n    const p = f.properties.parameters;\n\n    const tl = p.tl.data[0] ?? 'NULL';\n    const rr = p.rr.data[0] ?? 'NULL';\n    const ffx = p.ffx.data[0] ?? 'NULL';\n    const ff = p.ff.data[0] ?? 'NULL';\n    const dd = p.dd.data[0] ?? 'NULL';\n\n    sql += `INSERT INTO s1118832.sdi_weather_live \n        (timestamp, geom, temperature_2m, precipitation_1h, wind_gusts, wind_speed, wind_direction, station_id)\n    VALUES \n        ('${timestamp}', ST_SetSRID(ST_MakePoint(${lon}, ${lat}), 4326), \n        ${tl}, ${rr}, ${ffx}, ${ff}, ${dd}, ${station_id})\n    ON CONFLICT (station_id) DO UPDATE SET\n        timestamp = EXCLUDED.timestamp,\n        geom = EXCLUDED.geom,\n        temperature_2m = EXCLUDED.temperature_2m,\n        precipitation_1h = EXCLUDED.precipitation_1h,\n        wind_gusts = EXCLUDED.wind_gusts,\n        wind_speed = EXCLUDED.wind_speed,\n        wind_direction = EXCLUDED.wind_direction; `;\n});\n\nmsg.payload = sql;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 930,
+        "y": 280,
+        "wires": [
+            [
+                "a432738449327e6d"
+            ]
+        ]
+    },
+    {
+        "id": "63ea4af0035b278e",
+        "type": "postgresdb",
+        "cfgname": "geoserver22s.zgis.at",
+        "hostname": "geoserver22s.zgis.at",
+        "port": 5432,
+        "db": "st26_856263_sde",
+        "ssl": false
+    },
+    {
+        "id": "7b3985da68293b85",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-re-postgres": "0.3.4"
+        }
+    }
+]
