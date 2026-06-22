@@ -1,3 +1,13 @@
+-- FUNCTION: s1118832.fn_sdi_clean_weather_history_7d()
+
+-- DROP FUNCTION IF EXISTS s1118832.fn_sdi_clean_weather_history_7d();
+
+CREATE OR REPLACE FUNCTION s1118832.fn_sdi_clean_weather_history_7d()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE NOT LEAKPROOF
+AS $BODY$
 BEGIN
     -- Löscht alle Einträge, die älter als 7 Tage sind
     DELETE FROM sdi_weather_history_7d 
@@ -5,3 +15,7 @@ BEGIN
     
     RETURN NEW;
 END;
+$BODY$;
+
+ALTER FUNCTION s1118832.fn_sdi_clean_weather_history_7d()
+    OWNER TO s1118832;

@@ -1,16 +1,39 @@
-CREATE TABLE IF NOT EXISTS sdi_weather_live (
-    id SERIAL PRIMARY KEY,
-    grid_id VARCHAR(50) NOT NULL,
-    source VARCHAR(50) NOT NULL, -- e.g., 'DWD_ICON', 'GEOSPHERE_INCA'
-    timestamp TIMESTAMPTZ NOT NULL,
-    geom GEOMETRY(Point, 4326) NOT NULL,
-    temperature_2m NUMERIC,
-    precipitation_1h NUMERIC,
-    wind_gusts NUMERIC,
-    soil_moisture NUMERIC,
-    snow_depth NUMERIC,
-    CONSTRAINT unique_sdi_live_point UNIQUE (grid_id, source)
-);
+-- Table: s1118832.sdi_weather_live
 
--- Spatial index for high-performance GeoServer WMS/WFS rendering
-CREATE INDEX IF NOT EXISTS idx_sdi_weather_live_geom ON sdi_weather_live USING GIST(geom);
+-- DROP TABLE IF EXISTS s1118832.sdi_weather_live;
+
+CREATE TABLE IF NOT EXISTS s1118832.sdi_weather_live
+(
+    id integer NOT NULL DEFAULT nextval('sdi_weather_live_id_seq'::regclass),
+    "timestamp" timestamp with time zone NOT NULL,
+    geom geometry(Point,4326) NOT NULL,
+    temperature_2m numeric,
+    precipitation_1h numeric,
+    wind_gusts numeric,
+    wind_speed numeric,
+    wind_direction numeric,
+    station_id integer,
+    CONSTRAINT sdi_weather_live_pkey PRIMARY KEY (id),
+    CONSTRAINT uq_sdi_live_station UNIQUE (station_id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS s1118832.sdi_weather_live
+    OWNER to s1118832;
+-- Index: idx_sdi_live_geom
+
+-- DROP INDEX IF EXISTS s1118832.idx_sdi_live_geom;
+
+CREATE INDEX IF NOT EXISTS idx_sdi_live_geom
+    ON s1118832.sdi_weather_live USING gist
+    (geom)
+    TABLESPACE pg_default;
+-- Index: idx_sdi_weather_live_geom
+
+-- DROP INDEX IF EXISTS s1118832.idx_sdi_weather_live_geom;
+
+CREATE INDEX IF NOT EXISTS idx_sdi_weather_live_geom
+    ON s1118832.sdi_weather_live USING gist
+    (geom)
+    TABLESPACE pg_default;

@@ -1,7 +1,20 @@
+-- FUNCTION: s1118832.fn_sdi_clean_alpenwetter()
+
+-- DROP FUNCTION IF EXISTS s1118832.fn_sdi_clean_alpenwetter();
+
+CREATE OR REPLACE FUNCTION s1118832.fn_sdi_clean_alpenwetter()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE NOT LEAKPROOF
+AS $BODY$
 BEGIN
-    -- Löscht alle Einträge, die älter als 2 Tage sind
-    DELETE FROM sdi_dwd_alpenwetter 
-    WHERE issued_at < NOW() - INTERVAL '2 days';
+    DELETE FROM s1118832.sdi_dwd_alpenwetter
+    WHERE issued_at < (SELECT MAX(issued_at) FROM s1118832.sdi_dwd_alpenwetter);
     
     RETURN NEW;
 END;
+$BODY$;
+
+ALTER FUNCTION s1118832.fn_sdi_clean_alpenwetter()
+    OWNER TO s1118832;

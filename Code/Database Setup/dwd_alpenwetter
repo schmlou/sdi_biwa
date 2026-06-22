@@ -1,13 +1,35 @@
-CREATE TABLE dwd_bulletin (
-    id              SERIAL PRIMARY KEY,
-    issued_at       TIMESTAMPTZ NOT NULL,          -- 2026-06-20 14:00+02
-    next_update_at  TIMESTAMPTZ,                   -- 2026-06-21 14:00+02
-    region          TEXT,                          -- 'Deutscher Alpenraum'
-    issuer          TEXT,                          -- 'Regionale Wetterberatung Süd'
-    federal_state   TEXT,                          -- 'Bayern'
-    raw_html        TEXT,                          -- komplette Response
-    text_content    TEXT,                          -- bereinigter Plaintext
-    valid_from      DATE,                          -- 2026-06-21 (Sonntag)
-    valid_until     DATE,                          -- 2026-06-24 (Dienstag)
-    geom            GEOMETRY(POINT, 4326)          -- Referenzpunkt der Station/Region
-);
+-- Table: s1118832.sdi_dwd_alpenwetter
+
+-- DROP TABLE IF EXISTS s1118832.sdi_dwd_alpenwetter;
+
+CREATE TABLE IF NOT EXISTS s1118832.sdi_dwd_alpenwetter
+(
+    id integer NOT NULL DEFAULT nextval('sdi_dwd_alpenwetter_id_seq'::regclass),
+    issued_at timestamp with time zone NOT NULL,
+    next_update_at timestamp with time zone,
+    region text COLLATE pg_catalog."default",
+    issuer text COLLATE pg_catalog."default",
+    federal_state text COLLATE pg_catalog."default",
+    raw_html text COLLATE pg_catalog."default",
+    text_content text COLLATE pg_catalog."default",
+    valid_from date,
+    valid_until date,
+    geom geometry(Point,4326),
+    CONSTRAINT sdi_dwd_alpenwetter_pkey PRIMARY KEY (id),
+    CONSTRAINT uniq_issued UNIQUE (issued_at)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS s1118832.sdi_dwd_alpenwetter
+    OWNER to s1118832;
+
+-- Trigger: sdi_alpenwetter_clean
+
+-- DROP TRIGGER IF EXISTS sdi_alpenwetter_clean ON s1118832.sdi_dwd_alpenwetter;
+
+CREATE TRIGGER sdi_alpenwetter_clean
+    AFTER INSERT
+    ON s1118832.sdi_dwd_alpenwetter
+    FOR EACH ROW
+    EXECUTE FUNCTION s1118832.fn_sdi_clean_alpenwetter();

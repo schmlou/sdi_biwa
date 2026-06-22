@@ -1,32 +1,56 @@
-CREATE TABLE IF NOT EXISTS sdi_weather_history_7d (
-    id SERIAL PRIMARY KEY,
-    grid_id VARCHAR(50) NOT NULL,
-    source VARCHAR(50) NOT NULL,
-    timestamp TIMESTAMPTZ NOT NULL,
-    geom GEOMETRY(Point, 4326) NOT NULL,
-    temperature_2m NUMERIC,
-    precipitation_1h NUMERIC,
-    wind_gusts NUMERIC,
-    soil_moisture NUMERIC,
-    snow_depth NUMERIC
-);
+-- Table: s1118832.sdi_weather_history_7d
 
--- Performance indices for spatial bounds and dashboard dashboard queries
-CREATE INDEX IF NOT EXISTS idx_sdi_weather_history_geom ON sdi_weather_history_7d USING GIST(geom);
-CREATE INDEX IF NOT EXISTS idx_sdi_history_grid_time ON sdi_weather_history_7d(grid_id, timestamp DESC);
+-- DROP TABLE IF EXISTS s1118832.sdi_weather_history_7d;
 
--- PL/pgSQL Function: Deletes records older than 7 days relative to NOW()
-CREATE OR REPLACE FUNCTION fn_sdi_clean_weather_history_7d()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM sdi_weather_history_7d 
-    WHERE timestamp < NOW() - INTERVAL '7 days';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+CREATE TABLE IF NOT EXISTS s1118832.sdi_weather_history_7d
+(
+    id integer NOT NULL DEFAULT nextval('sdi_weather_history_7d_id_seq'::regclass),
+    "timestamp" timestamp with time zone NOT NULL,
+    geom geometry(Point,4326) NOT NULL,
+    temperature_2m numeric,
+    precipitation_1h numeric,
+    wind_gusts numeric,
+    wind_speed numeric,
+    wind_direction numeric,
+    station_id integer,
+    CONSTRAINT sdi_weather_history_7d_pkey PRIMARY KEY (id)
+)
 
--- Trigger: Executes the cleanup function once per batch insert statement
-CREATE OR REPLACE TRIGGER trg_sdi_clean_weather_history
-AFTER INSERT ON sdi_weather_history_7d
-FOR EACH STATEMENT
-EXECUTE FUNCTION fn_sdi_clean_weather_history_7d();
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS s1118832.sdi_weather_history_7d
+    OWNER to s1118832;
+-- Index: idx_sdi_history_geom
+
+-- DROP INDEX IF EXISTS s1118832.idx_sdi_history_geom;
+
+CREATE INDEX IF NOT EXISTS idx_sdi_history_geom
+    ON s1118832.sdi_weather_history_7d USING gist
+    (geom)
+    TABLESPACE pg_default;
+-- Index: idx_sdi_history_ts
+
+-- DROP INDEX IF EXISTS s1118832.idx_sdi_history_ts;
+
+CREATE INDEX IF NOT EXISTS idx_sdi_history_ts
+    ON s1118832.sdi_weather_history_7d USING btree
+    ("timestamp" DESC NULLS FIRST)
+    TABLESPACE pg_default;
+-- Index: idx_sdi_weather_history_geom
+
+-- DROP INDEX IF EXISTS s1118832.idx_sdi_weather_history_geom;
+
+CREATE INDEX IF NOT EXISTS idx_sdi_weather_history_geom
+    ON s1118832.sdi_weather_history_7d USING gist
+    (geom)
+    TABLESPACE pg_default;
+
+-- Trigger: trg_sdi_clean_weather_history
+
+-- DROP TRIGGER IF EXISTS trg_sdi_clean_weather_history ON s1118832.sdi_weather_history_7d;
+
+CREATE TRIGGER trg_sdi_clean_weather_history
+    AFTER INSERT
+    ON s1118832.sdi_weather_history_7d
+    FOR EACH STATEMENT
+    EXECUTE FUNCTION s1118832.fn_sdi_clean_weather_history_7d();
