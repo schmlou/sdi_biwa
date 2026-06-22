@@ -1,0 +1,7 @@
+BEGIN
+    -- Löscht alle Einträge, die älter als 2 Tage sind
+    DELETE FROM sdi_dwd_alpenwetter 
+    WHERE issued_at < NOW() - INTERVAL '2 days';
+    
+    RETURN NEW;
+END;
