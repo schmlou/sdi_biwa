@@ -1,6 +1,6 @@
 [
     {
-        "id": "e9bc56699e988e0f",
+        "id": "2857936c646975e5",
         "type": "http request",
         "z": "f6f2187d.f17ca8",
         "name": "Query GeoSphere Stations",
@@ -15,17 +15,17 @@
         "authType": "",
         "senderr": false,
         "headers": [],
-        "x": 620,
-        "y": 220,
+        "x": 520,
+        "y": 240,
         "wires": [
             [
-                "b8dfc8d21ac71680",
-                "8c7a40d75d49cee9"
+                "610a65059b339060",
+                "0fbe138207242161"
             ]
         ]
     },
     {
-        "id": "b8dfc8d21ac71680",
+        "id": "0fbe138207242161",
         "type": "function",
         "z": "f6f2187d.f17ca8",
         "name": "SQL Builder weather_history",
@@ -36,16 +36,16 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 940,
-        "y": 160,
+        "x": 960,
+        "y": 180,
         "wires": [
             [
-                "a432738449327e6d"
+                "05502aa1193bf53c"
             ]
         ]
     },
     {
-        "id": "a432738449327e6d",
+        "id": "05502aa1193bf53c",
         "type": "postgres",
         "z": "f6f2187d.f17ca8",
         "postgresdb": "63ea4af0035b278e",
@@ -60,12 +60,12 @@
         "limit_drop_intermediate": false,
         "limit_drop_if_in_queue": false,
         "outputs": 0,
-        "x": 1240,
-        "y": 220,
+        "x": 1260,
+        "y": 240,
         "wires": []
     },
     {
-        "id": "67cfa5afbcaa1089",
+        "id": "47498e5baca30a33",
         "type": "inject",
         "z": "f6f2187d.f17ca8",
         "name": "Trigger API Query",
@@ -81,36 +81,36 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 210,
-        "y": 220,
+        "x": 130,
+        "y": 240,
         "wires": [
             [
-                "f7722cc4db825460"
+                "6bdc7fad619f3cda"
             ]
         ]
     },
     {
-        "id": "f7722cc4db825460",
+        "id": "6bdc7fad619f3cda",
         "type": "function",
         "z": "f6f2187d.f17ca8",
         "name": "function 1",
-        "func": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\n\nconst year = now.getUTCFullYear();\nconst month = pad(now.getUTCMonth() + 1);\nconst day = pad(now.getUTCDate());\n\n// Letzte volle Stunde\nconst hour = pad(now.getUTCHours() - 1);\n\nconst start = `${year}-${month}-${day}T${hour}:00`;\nconst end = `${year}-${month}-${day}T${hour}:00`;\n\nmsg.url = `https://dataset.api.hub.geosphere.at/v1/station/historical/klima-v2-1h?station_ids=6300,6305,9211,9215,9406,12302,12504&parameters=tl,ff,dd,ffx,rr&start=${start}&end=${end}`;\n\nreturn msg;",
+        "func": "const now = new Date();\nconst pad = n => String(n).padStart(2, '0');\n\nconst year = now.getUTCFullYear();\nconst month = pad(now.getUTCMonth() + 1);\nconst day = pad(now.getUTCDate());\n\n// Aktuelle UTC-Stunde (Daten der laufenden Stunde)\nconst hour = pad(now.getUTCHours());\n\nconst start = `${year}-${month}-${day}T${hour}:00`;\nconst end   = `${year}-${month}-${day}T${hour}:00`;\n\nmsg.url = `https://dataset.api.hub.geosphere.at/v1/station/historical/klima-v2-1h?station_ids=6300,6305,9211,9215,9406,12302,12504&parameters=tl,ff,dd,ffx,rr&start=${start}&end=${end}`;\n\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 400,
-        "y": 220,
+        "x": 300,
+        "y": 240,
         "wires": [
             [
-                "e9bc56699e988e0f"
+                "2857936c646975e5"
             ]
         ]
     },
     {
-        "id": "8c7a40d75d49cee9",
+        "id": "610a65059b339060",
         "type": "function",
         "z": "f6f2187d.f17ca8",
         "name": "SQL Builder weather_live",
@@ -121,11 +121,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 930,
-        "y": 280,
+        "x": 950,
+        "y": 300,
         "wires": [
             [
-                "a432738449327e6d"
+                "05502aa1193bf53c"
             ]
         ]
     },
@@ -139,7 +139,7 @@
         "ssl": false
     },
     {
-        "id": "7b3985da68293b85",
+        "id": "2c91fc0e48323bfb",
         "type": "global-config",
         "env": [],
         "modules": {
