@@ -1,0 +1,7 @@
+BEGIN
+    -- Löscht alle Einträge, die älter als 7 Tage sind
+    DELETE FROM sdi_weather_history_7d 
+    WHERE timestamp < NOW() - INTERVAL '7 days';
+    
+    RETURN NEW;
+END;
