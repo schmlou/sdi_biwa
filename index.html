@@ -220,6 +220,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .layer-item.active .layer-opacity-row { display: flex; }
 .opacity-slider { flex: 1; min-width: 0; cursor: pointer; accent-color: var(--ice); }
 .opacity-pct { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); min-width: 28px; text-align: right; }
+.layer-info-link { font-size: 10px; color: var(--text-muted); text-decoration: none; margin-left: 4px; white-space: nowrap; }
+.layer-info-link:hover { color: var(--ice); }
 
 /* ALPENWETTER TICKER (inline in status bar) */
 #alpen-ticker {
@@ -306,7 +308,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#22c55e"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Aspect</div>
+            <div class="layer-name">Aspect <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/dbf83c78-a5f2-433f-8926-ea26c468e752" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('aspect',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -317,7 +319,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#f59e0b"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Buildings</div>
+            <div class="layer-name">Buildings <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/a2e23346-77bb-4eab-bed7-098cfdb55e1c" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('buildings',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -328,7 +330,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#0ea5e9"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">DEM</div>
+            <div class="layer-name">Digital Elevation Model (DEM) <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/322f3765-91a0-4f76-a840-49cb3c474cf5" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('dem',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -339,7 +341,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#ef4444"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Hazard zones</div>
+            <div class="layer-name">Hazard Zones <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/8fe73a82-f138-4a52-82a3-271d18209198" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hazard',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -350,7 +352,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#64748b"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Hillshade</div>
+            <div class="layer-name">Hillshade <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/d466278b-e06d-43d0-8abe-aef7dccbacee" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hillshade',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -361,7 +363,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#22d3ee"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Protected areas</div>
+            <div class="layer-name">Protected Areas <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/00491a91-297f-42a1-80e1-06d9b7cee274" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('protected',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -372,7 +374,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#f97316"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Roads</div>
+            <div class="layer-name">Roads <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/eb186d5f-2c77-4062-91b3-fd87b3f95045" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('roads',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -383,7 +385,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#8b5cf6"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Species occurrence</div>
+            <div class="layer-name">Species Occurrence <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/57540504-450b-4baf-b838-7b83f28c1c27" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('species',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -394,7 +396,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#eab308"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Slope</div>
+            <div class="layer-name">Slope <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/7d673c77-c7c5-45f7-b747-59d61952963f" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('slope',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -528,7 +530,7 @@ function setBasemap(name) {
 }
 
 /* ── WMS LAYER (styled raster from GeoServer) ─────────── */
-let GRID_ID_FIELD = 'grid_id'; // auto-detected from first WFS response
+let GRID_ID_FIELD = 'station_id'; // auto-detected from first WFS response
 
 /* ── LAYER VISIBILITY STATE ───────────────────────────── */
 let liveGeoJSON = null;
@@ -574,7 +576,7 @@ function setLayerOpacity(name, value, sliderEl) {
   if (name === 'live') {
     if (liveGeoJSON) {
       liveGeoJSON.eachLayer(layer => {
-        const isSelected = layer.feature?.properties?.grid_id === selectedStation;
+        const isSelected = layer.feature?.properties?.station_id === selectedStation;
         layer.setStyle({ opacity: value, fillOpacity: value * (isSelected ? 0.75 : 0.35) });
       });
     }
@@ -602,7 +604,7 @@ function getLiveLayer(gridId) {
   if (!liveGeoJSON) return null;
   let hit = null;
   liveGeoJSON.eachLayer(layer => {
-    if (layer.feature?.properties?.grid_id === gridId) hit = layer;
+    if (layer.feature?.properties?.station_id === gridId) hit = layer;
   });
   return hit;
 }
@@ -663,8 +665,8 @@ async function loadLiveStations() {
           <div class="popup-row"><span class="pk">Temperature</span><span class="pv">${fmt(p.temperature_2m)} °C</span></div>
           <div class="popup-row"><span class="pk">Precipitation</span><span class="pv">${fmt(p.precipitation_1h)} mm</span></div>
           <div class="popup-row"><span class="pk">Wind gusts</span><span class="pv">${fmt(p.wind_gusts, 0)} km/h</span></div>
-          <div class="popup-row"><span class="pk">Snow depth</span><span class="pv">${fmt(p.snow_depth, 0)} cm</span></div>
-          <div class="popup-row"><span class="pk">Soil moisture</span><span class="pv">${fmt(p.soil_moisture, 3)} m³/m³</span></div>
+          <div class="popup-row"><span class="pk">Snow depth</span><span class="pv">N/A</span></div>
+          <div class="popup-row"><span class="pk">Soil moisture</span><span class="pv">N/A</span></div>
           <div class="popup-row"><span class="pk">Updated</span><span class="pv">${fmtTime(p.timestamp)}</span></div>
         `, { className: 'biwa-popup' });
 
@@ -738,7 +740,7 @@ function renderStationCards(props) {
           </div>
           <div class="sc-metric">
             <div class="scm-label">Snow</div>
-            <div class="scm-value">${fmt(p.snow_depth, 0)}<span class="u"> cm</span></div>
+            <div class="scm-value">N/A</div>
           </div>
         </div>
         <div class="sc-updated">Last reading: ${fmtTime(p.timestamp)}</div>
