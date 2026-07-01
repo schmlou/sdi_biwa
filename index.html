@@ -15,29 +15,31 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-deep:    #0b0f14;
-  --bg-panel:   #131920;
-  --bg-card:    #1a2330;
-  --bg-hover:   #1f2d3d;
-  --border:     rgba(255,255,255,0.07);
-  --border-lit: rgba(79,195,247,0.3);
-  --ice:        #4fc3f7;
-  --ice-dim:    #1a6a8a;
-  --amber:      #f59e0b;
-  --amber-dim:  #7a4d05;
-  --red:        #ef4444;
-  --red-dim:    #7a1a1a;
-  --green:      #4ade80;
-  --green-dim:  #1a5e30;
-  --purple:     #a78bfa;
-  --text-primary:   #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted:     #475569;
+  --bg-deep:    #FFF9D2;
+  --bg-panel:   #FFF9D2;
+  --bg-card:    #FFEBCC;
+  --bg-hover:   #FFE0B5;
+  --border:     rgba(140,192,235,0.28);
+  --border-lit: rgba(140,192,235,0.7);
+  --ice:        #8CC0EB;
+  --ice-dim:    #BFDDF0;
+  --amber:      #B07010;
+  --amber-dim:  #FDE8C0;
+  --red:        #C03030;
+  --red-dim:    #FDD0D0;
+  --green:      #2E8B50;
+  --green-dim:  #C5E8CC;
+  --purple:     #7055C0;
+  --text-primary:   #1A2A3A;
+  --text-secondary: #3A5568;
+  --text-muted:     #7A9AB5;
+  --chart-grid:     rgba(140,192,235,0.25);
+  --chart-label:    rgba(26,42,58,0.55);
   --font-ui:   'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --sidebar-w: 280px;
   --status-h:  42px;
-  --tray-h:    160px;
+  --tray-h:    210px;
 }
 
 html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: var(--text-primary); font-family: var(--font-ui); }
@@ -56,7 +58,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 #status-brand .logo-mark {
   width: 26px; height: 26px; border-radius: 5px;
   background: var(--ice); display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: #0b0f14; flex-shrink: 0;
+  font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: #FFF9D2; flex-shrink: 0;
 }
 #status-brand .brand-title { font-weight: 600; font-size: 12px; letter-spacing: 0.05em; }
 #status-brand .brand-sub   { font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; }
@@ -64,21 +66,89 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 #alert-level {
   display: flex; align-items: center; gap: 8px;
   padding: 0 20px; border-right: 1px solid var(--border); height: 100%;
+  cursor: pointer; user-select: none;
 }
+#alert-level:hover { background: var(--bg-hover); }
+
+/* Threshold overview panel */
+#thr-panel {
+  position: fixed; top: var(--status-h); left: 0;
+  width: 500px; z-index: 2000;
+  background: var(--bg-panel); border: 1px solid var(--border-lit);
+  border-top: 2px solid var(--ice); border-radius: 0 0 8px 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  padding: 14px 16px;
+}
+#thr-panel.hidden { display: none; }
+.thr-title { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+             color: var(--text-muted); margin-bottom: 10px; }
+.thr-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.thr-table th {
+  text-align: left; padding: 4px 8px; font-size: 9px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.thr-limits { font-size: 8px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; text-transform: none; }
+.thr-row td { padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.thr-row:last-child td { border-bottom: none; }
+.thr-station { color: var(--text-secondary); font-size: 11px; }
+.thr-cell { font-family: var(--font-mono); font-weight: 600; text-align: right; }
+.thr-cell.ok    { color: var(--green); }
+.thr-cell.warn  { color: var(--amber); }
+.thr-cell.alert { color: var(--red); }
+.thr-cell.na    { color: var(--text-muted); font-weight: 400; }
+.thr-row.alert .thr-station { color: var(--text-primary); }
+.thr-bar-wrap { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+.thr-bar { height: 3px; width: 60px; background: rgba(255,255,255,0.08); border-radius: 2px; flex-shrink: 0; }
+.thr-bar-fill { height: 100%; border-radius: 2px; }
+.thr-bar-fill.ok    { background: var(--green); }
+.thr-bar-fill.warn  { background: var(--amber); }
+.thr-bar-fill.alert { background: var(--red); }
+
+.thr-legend {
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.thr-legend-title {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 7px;
+}
+.thr-legend-grid { display: flex; flex-direction: column; gap: 4px; }
+.thr-leg-item { display: flex; align-items: center; gap: 6px; font-size: 10px; }
+.thr-leg-label { color: var(--text-secondary); width: 80px; flex-shrink: 0; }
+.thr-leg-sep { color: var(--text-muted); }
+.thr-leg-band {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 3px;
+}
+.thr-leg-band.warn  { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.thr-leg-band.alert { background: rgba(239,68,68,0.15);  color: var(--red);   border: 1px solid rgba(239,68,68,0.3); }
 .pulse-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--green); animation: pulse-green 2s infinite;
 }
 .pulse-dot.warn  { background: var(--amber); animation: pulse-amber 1.4s infinite; }
 .pulse-dot.alert { background: var(--red);   animation: pulse-red   0.9s infinite; }
-@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0.5)}  50%{box-shadow:0 0 0 5px rgba(74,222,128,0)} }
-@keyframes pulse-amber { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.6)}  50%{box-shadow:0 0 0 6px rgba(245,158,11,0)} }
-@keyframes pulse-red   { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.7)}   50%{box-shadow:0 0 0 7px rgba(239,68,68,0)} }
+@keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(46,139,80,0.55)}  50%{box-shadow:0 0 0 5px rgba(46,139,80,0)} }
+@keyframes pulse-amber { 0%,100%{box-shadow:0 0 0 0 rgba(176,112,16,0.55)} 50%{box-shadow:0 0 0 6px rgba(176,112,16,0)} }
+@keyframes pulse-red   { 0%,100%{box-shadow:0 0 0 0 rgba(192,48,48,0.65)}  50%{box-shadow:0 0 0 7px rgba(192,48,48,0)} }
 
+#alert-label .level-section { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
 #alert-label .level-tag { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--green); text-transform: uppercase; }
 #alert-label .level-tag.warn  { color: var(--amber); }
 #alert-label .level-tag.alert { color: var(--red); }
 #alert-label .level-desc { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+
+#system-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px; border-right: 1px solid var(--border); height: 100%;
+}
+.sys-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--text-muted); }
+.sys-dot.ok    { background: var(--green); }
+.sys-dot.warn  { background: var(--amber); }
+.sys-dot.alert { background: var(--red); }
+#sys-label .sys-section { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+#sys-label .sys-desc    { font-size: 11px; color: var(--text-secondary); }
 
 #status-metrics { display: flex; align-items: center; flex: 1; height: 100%; overflow: hidden; }
 .status-metric {
@@ -89,27 +159,17 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .status-metric .sm-value { font-family: var(--font-mono); font-size: 13px; font-weight: 600; margin-top: 2px; }
 .status-metric .sm-value .unit { font-size: 10px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
 
-#status-time { padding: 0 18px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+#authors-credit { padding: 0 18px; border-left: 1px solid var(--border); height: 100%; display: flex; flex-direction: row; align-items: center; gap: 8px; white-space: nowrap; }
 
-/* FETCH STATUS BADGE */
-#fetch-status {
-  padding: 0 14px; font-size: 10px; font-family: var(--font-mono);
-  color: var(--text-muted); border-left: 1px solid var(--border); height: 100%;
-  display: flex; align-items: center; gap: 6px; white-space: nowrap;
-}
-#fetch-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); }
-#fetch-dot.ok    { background: var(--green); }
-#fetch-dot.error { background: var(--red); }
-#fetch-dot.loading { background: var(--amber); animation: pulse-amber 1s infinite; }
 
 /* LAYOUT */
-#app { position: fixed; top: var(--status-h); left: 0; right: 0; bottom: var(--tray-h); display: flex; }
+#app { position: fixed; top: var(--status-h); left: var(--sidebar-w); right: 0; bottom: var(--tray-h); display: flex; }
 
 /* SIDEBAR */
 #sidebar {
-  width: var(--sidebar-w); background: var(--bg-panel);
-  border-right: 1px solid var(--border); display: flex;
-  flex-direction: column; overflow-y: auto; flex-shrink: 0; z-index: 500;
+  position: fixed; top: var(--status-h); left: 0; bottom: 0; width: var(--sidebar-w);
+  background: var(--bg-panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto; z-index: 500;
 }
 #sidebar::-webkit-scrollbar { width: 4px; }
 #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -128,41 +188,99 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .layer-name { font-size: 12px; font-weight: 500; }
 .layer-src  { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
-/* station cards */
-.station-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 12px; margin-bottom: 6px;
-  position: relative; overflow: hidden; cursor: pointer; transition: border-color 0.15s;
+/* ── TRAY STATION TILES ─────────────────────────────── */
+/* ── TRAY STATION ACCORDION ─────────────────────────── */
+#tray-stations {
+  display: flex; flex-direction: row; align-items: stretch;
+  flex-shrink: 0; border-right: 1px solid var(--border); overflow: hidden;
 }
-.station-card:hover { border-color: var(--border-lit); }
-.station-card.selected { border-color: var(--ice); }
-.station-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.station-card.ok::before    { background: var(--green); }
-.station-card.warn::before  { background: var(--amber); }
-.station-card.alert::before { background: var(--red); }
 
-.sc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-.sc-name   { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
-.sc-badge  { font-size: 9px; font-weight: 600; letter-spacing: 0.06em; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
-.sc-badge.ok    { background: var(--green-dim); color: var(--green); }
-.sc-badge.warn  { background: var(--amber-dim); color: var(--amber); }
-.sc-badge.alert { background: var(--red-dim);   color: var(--red); }
+/* inactive strip */
+.st-tile {
+  flex: 1; min-width: 80px;
+  background: var(--bg-card); border-right: 1px solid var(--border);
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: flex-basis 0.25s ease, width 0.25s ease, background 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  padding: 8px;
+}
+.st-tile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.st-tile.ok::before    { background: var(--green); }
+.st-tile.warn::before  { background: var(--amber); }
+.st-tile.alert::before { background: var(--red); }
+.st-tile:hover { background: var(--bg-hover); }
 
-.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; margin-top: 4px; }
-.sc-metric .scm-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.sc-metric .scm-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
-.sc-metric .scm-value .u { font-size: 10px; font-weight: 400; color: var(--text-muted); }
-.sc-updated { font-size: 9px; color: var(--text-muted); margin-top: 6px; font-family: var(--font-mono); }
+/* horizontal name on inactive tile */
+.st-name {
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  white-space: normal; word-break: break-word;
+  user-select: none; text-align: center; width: 100%;
+  line-height: 1.4;
+}
+
+/* expanded (selected) tile */
+.st-tile.selected {
+  flex: 0 0 220px; width: 220px;
+  border-color: var(--ice); background: var(--bg-hover);
+  flex-direction: column; align-items: flex-start;
+  justify-content: flex-start; padding: 10px 14px;
+  overflow-y: auto; min-width: unset;
+}
+.st-tile.selected .st-name {
+  writing-mode: horizontal-tb; transform: none;
+  font-size: 12px; font-weight: 700; color: var(--ice);
+  margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; width: 100%;
+  flex-shrink: 0;
+}
+
+/* header row: station name + status badge */
+.st-head { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; margin-bottom: 10px; gap: 6px; }
+.st-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.06em; white-space: nowrap; flex-shrink: 0; }
+.st-badge.ok    { background: var(--green); color: #0a1a0a; }
+.st-badge.warn  { background: var(--amber); color: #1a1000; }
+.st-badge.alert { background: var(--red);   color: #fff; }
+
+/* 2-column value grid */
+.st-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 6px; width: 100%; }
+.st-cl { font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px; }
+.st-cv { font-family: var(--font-mono); font-size: 17px; font-weight: 700; color: var(--text-primary); line-height: 1; }
+.st-cu { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 2px; }
+
+/* 7d summary inside expanded tile */
+.st-divider { width: 100%; border-top: 1px solid rgba(255,255,255,0.12); margin: 10px 0 6px; }
+.st-summary-title { font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+                    text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.st-sum-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11px; padding: 2px 0;
+}
+.st-sl { color: var(--text-muted); }
+.st-sv { font-family: var(--font-mono); font-weight: 600; color: var(--text-primary); }
+.st-time { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 8px; }
+
+/* ── SIDEBAR LEGEND ─────────────────────────────────── */
+#sidebar-legend { overflow-y: auto; }
+#sidebar-legend::-webkit-scrollbar { width: 3px; }
+#sidebar-legend::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+#sidebar-legend .legend-item { margin-bottom: 10px; }
+#sidebar-legend .legend-item:last-child { margin-bottom: 0; }
+#sidebar-legend .legend-item-label {
+  font-size: 9px; font-weight: 600; color: var(--text-primary);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px;
+}
+#sidebar-legend .legend-item img { display: block; image-rendering: crisp-edges; max-width: 100%; }
 
 /* MAP */
 #map { flex: 1; background: var(--bg-deep); position: relative; }
-.leaflet-container { background: #0d1520 !important; }
-.leaflet-control-zoom { border: 1px solid var(--border) !important; background: var(--bg-panel) !important; }
-.leaflet-control-zoom a { background: var(--bg-panel) !important; color: var(--text-secondary) !important; border-bottom: 1px solid var(--border) !important; }
-.leaflet-control-zoom a:hover { background: var(--bg-hover) !important; color: var(--text-primary) !important; }
-.leaflet-control-attribution { background: rgba(13,21,32,0.8) !important; color: var(--text-muted) !important; font-size: 9px !important; }
+.leaflet-container { background: #07090A !important; }
+.leaflet-control-zoom { border: 1px solid rgba(140,192,235,0.5) !important; background: #FFF9D2 !important; }
+.leaflet-control-zoom a { background: #FFF9D2 !important; color: #3A5568 !important; border-bottom: 1px solid rgba(140,192,235,0.3) !important; }
+.leaflet-control-zoom a:hover { background: #FFEBCC !important; color: #1A2A3A !important; }
+.leaflet-control-attribution { background: rgba(255,249,210,0.9) !important; color: #7A9AB5 !important; font-size: 9px !important; }
 
 #map-tools { position: absolute; top: 12px; right: 12px; z-index: 1000; display: flex; flex-direction: column; gap: 6px; }
+
+/* legend-panel is now inside sidebar — styles moved to #sidebar-legend above */
 .map-tool-btn {
   background: var(--bg-panel); border: 1px solid var(--border);
   border-radius: 6px; width: 36px; height: 36px; display: flex;
@@ -186,25 +304,47 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 
 /* TRAY */
 #tray {
-  position: fixed; bottom: 0; left: 0; right: 0; height: var(--tray-h);
+  position: fixed; bottom: 0; left: var(--sidebar-w); right: 0; height: var(--tray-h);
   background: var(--bg-panel); border-top: 1px solid var(--border);
   display: flex; z-index: 600;
 }
 #tray-label {
-  width: var(--sidebar-w); padding: 14px 16px; border-right: 1px solid var(--border);
+  width: 120px; padding: 10px 12px; border-right: 1px solid var(--border);
   flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;
 }
 #tray-label .tl-title { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
 #tray-label .tl-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 #tray-label .tl-hint  { font-size: 10px; color: var(--text-muted); font-style: italic; }
 #tray-label .tl-range { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+#chart-col-btn {
+  margin-top: 6px; width: 100%; padding: 3px 0; font-size: 10px; cursor: pointer;
+  background: none; border: 1px solid var(--border-lit); border-radius: 4px;
+  color: var(--text-muted); transition: background 0.15s, color 0.15s;
+}
+#chart-col-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+#chart-col-picker {
+  position: fixed; z-index: 900; background: var(--bg-card);
+  border: 1px solid var(--border-lit); border-radius: 8px;
+  padding: 10px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  min-width: 190px;
+}
+#chart-col-picker.hidden { display: none; }
+#chart-col-picker .ccp-title { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.col-pick-item { display: flex; align-items: center; gap: 7px; padding: 3px 0; cursor: pointer; }
+.col-pick-item label { font-size: 11px; color: var(--text-secondary); cursor: pointer; user-select: none; }
+.col-pick-item input[type=checkbox] { accent-color: var(--ice); cursor: pointer; }
 
 #tray-charts { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; }
 #tray-charts::-webkit-scrollbar { height: 3px; }
 #tray-charts::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-.tray-chart { flex-shrink: 0; width: 160px; padding: 10px 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.tray-chart { flex-shrink: 0; width: 210px; padding: 10px 12px; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
 .tray-chart:last-child { border-right: none; }
+.tray-chart.windrose { width: 160px; align-items: center; }
+.tc-rose-wrap { position: relative; width: 110px; height: 110px; flex-shrink: 0; margin: 4px 0; }
+.tc-rose-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+.tc-rose-compass { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-top: 2px; letter-spacing: 0.05em; }
 .tc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.tray-chart.windrose .tc-header { width: 100%; }
 .tc-name  { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
 .tc-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
 .tc-canvas-wrap { flex: 1; position: relative; min-height: 0; }
@@ -214,6 +354,13 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
   font-size: 9px; font-family: var(--font-mono); padding-left: 4px;
   line-height: 0; padding-top: 2px; pointer-events: none;
 }
+#chart-tooltip {
+  position: fixed; display: none; z-index: 9999; pointer-events: none;
+  background: var(--bg-card); color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 10px; white-space: nowrap;
+  padding: 5px 9px; border-radius: 5px; border: 1px solid var(--border-lit);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
 
 /* opacity sliders */
 .layer-opacity-row { display: none; align-items: center; gap: 6px; margin-top: 5px; }
@@ -222,6 +369,11 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .opacity-pct { font-size: 10px; color: var(--text-muted); font-family: var(--font-mono); min-width: 28px; text-align: right; }
 .layer-info-link { font-size: 10px; color: var(--text-muted); text-decoration: none; margin-left: 4px; white-space: nowrap; }
 .layer-info-link:hover { color: var(--ice); }
+/* env filter checkboxes */
+.env-filter-row { display: none; flex-wrap: wrap; gap: 4px 10px; margin-top: 5px; }
+.layer-item.active .env-filter-row { display: flex; }
+.env-check { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; cursor: pointer; user-select: none; }
+.env-check input[type=checkbox] { accent-color: var(--ice); cursor: pointer; width: 11px; height: 11px; margin: 0; }
 
 /* ALPENWETTER TICKER (inline in status bar) */
 #alpen-ticker {
@@ -248,6 +400,118 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
   to   { transform: translateX(-100%); }
 }
 
+/* about modal */
+#about-modal {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.72); align-items: center; justify-content: center;
+}
+#about-modal.open { display: flex; }
+#about-box {
+  background: var(--bg-panel); border: 1px solid var(--border-lit);
+  border-radius: 10px; width: 720px; max-width: 96vw; max-height: 82vh;
+  overflow-y: auto; padding: 24px 28px;
+}
+#about-box::-webkit-scrollbar { width: 4px; }
+#about-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.about-title { font-size: 13px; font-weight: 600; color: var(--ice); }
+.about-close { cursor: pointer; color: var(--text-muted); font-size: 20px; line-height: 1; }
+.about-close:hover { color: var(--text-primary); }
+.about-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+.about-table th {
+  text-align: left; font-size: 9px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-muted); padding: 0 10px 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.about-table td {
+  padding: 8px 10px 8px 0; border-bottom: 1px solid var(--border);
+  vertical-align: top; color: var(--text-secondary);
+}
+.about-table tr:last-child td { border-bottom: none; }
+.about-table td:first-child { font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+.about-mono { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); word-break: break-all; }
+.about-link-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 22px; padding: 0 8px; border-radius: 4px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--ice); text-decoration: none; font-size: 10px;
+  font-family: var(--font-mono); letter-spacing: 0.04em; transition: all 0.15s;
+}
+.about-link-btn:hover { background: var(--bg-hover); border-color: var(--border-lit); }
+.about-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; padding: 2px 5px; border-radius: 3px; text-transform: uppercase; }
+.about-badge.wms { background: #1a3a5e; color: #4fc3f7; }
+.about-badge.wfs { background: #1a4a2a; color: #4ade80; }
+
+/* ── GUIDED TOUR ─────────────────────────────────────── */
+#tour-overlay {
+  position: fixed; inset: 0; z-index: 8000;
+  pointer-events: all;
+}
+#tour-overlay.hidden { display: none; }
+#tour-overlay.dark { background: rgba(0,0,0,0.52); }
+
+#tour-highlight {
+  position: fixed; z-index: 8001; border-radius: 7px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.52);
+  pointer-events: none;
+  transition: left 0.3s ease, top 0.3s ease, width 0.3s ease, height 0.3s ease;
+  outline: 2px solid var(--ice); outline-offset: 0;
+}
+#tour-highlight.hidden { display: none; }
+
+#tour-card {
+  position: fixed; z-index: 8002;
+  background: var(--bg-panel); border: 1px solid var(--border-lit);
+  border-radius: 10px; width: 300px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  padding: 18px 20px;
+  transition: left 0.3s ease, top 0.3s ease;
+}
+#tour-card.hidden { display: none; }
+#tour-card::before {
+  content: ''; position: absolute; width: 10px; height: 10px;
+  background: var(--bg-panel); border: 1px solid var(--border-lit);
+  transform: rotate(45deg);
+}
+#tour-card.arrow-top::before    { top: -6px;    left: 20px; border-bottom: none; border-right: none; }
+#tour-card.arrow-bottom::before { bottom: -6px; left: 20px; border-top: none; border-left: none; }
+#tour-card.arrow-left::before   { left: -6px;   top: 16px;  border-top: none; border-right: none; }
+#tour-card.arrow-right::before  { right: -6px;  top: 16px;  border-bottom: none; border-left: none; }
+.tour-step-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ice); margin-bottom: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tour-title {
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.tour-text {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.6;
+  margin-bottom: 16px;
+}
+.tour-nav { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.tour-nav-left { display: flex; gap: 6px; }
+.tour-btn {
+  padding: 5px 14px; border-radius: 5px; font-size: 11px; font-weight: 500;
+  font-family: var(--font-ui); cursor: pointer; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary); transition: all 0.15s;
+}
+.tour-btn:hover { border-color: var(--border-lit); color: var(--text-primary); }
+.tour-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+.tour-btn-primary {
+  background: var(--ice); color: var(--bg-deep);
+  border-color: var(--ice); font-weight: 600;
+}
+.tour-btn-primary:hover { opacity: 0.9; color: var(--bg-deep); }
+.tour-dots { display: flex; gap: 5px; align-items: center; }
+.tour-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border-lit); transition: background 0.2s;
+}
+.tour-dot.active { background: var(--ice); width: 18px; border-radius: 3px; }
+#tour-card.tour-intro { width: 360px; }
+#tour-card.tour-intro::before { display: none; }
+
 /* basemap buttons */
 .bm-btn {
   background: var(--bg-card); border: 1px solid var(--border);
@@ -270,6 +534,27 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
     </div>
   </div>
 
+  <div id="alert-level" onclick="toggleThresholdPanel()">
+    <div class="pulse-dot" id="alert-dot"></div>
+    <div id="alert-label">
+      <div class="level-section">Hazard Level</div>
+      <div class="level-tag" id="alert-tag">OK</div>
+      <div class="level-desc" id="alert-desc">Normal operations</div>
+    </div>
+  </div>
+  <div id="thr-panel" class="hidden">
+    <div class="thr-title">Threshold Overview</div>
+    <div id="thr-content"></div>
+  </div>
+
+  <div id="system-status">
+    <div class="sys-dot" id="sys-dot"></div>
+    <div id="sys-label">
+      <div class="sys-section">System</div>
+      <div class="sys-desc" id="sys-desc">Checking stations…</div>
+    </div>
+  </div>
+
   <div id="alpen-ticker">
     <div class="ticker-label">
       <span style="font-size:13px;line-height:1">⛅</span>
@@ -280,12 +565,30 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
     </div>
   </div>
 
-  <div id="fetch-status">
-    <div id="fetch-dot"></div>
-    <span id="fetch-label">—</span>
+  <div id="authors-credit">
+    <button onclick="document.getElementById('about-modal').classList.toggle('open')" style="background:var(--bg-card);border:1px solid var(--border);border-radius:5px;padding:5px 14px;font-size:11px;font-family:var(--font-ui);font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--border-lit)';this.style.color='var(--ice)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">About</button>
+    <button onclick="startTour()" style="background:var(--ice);border:1px solid var(--ice);border-radius:5px;padding:5px 14px;font-size:11px;font-family:var(--font-ui);font-weight:600;color:var(--bg-deep);cursor:pointer;transition:all 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Tour</button>
   </div>
-  <div id="status-time">—</div>
 </header>
+
+<!-- GUIDED TOUR -->
+<div id="tour-overlay" class="hidden" onclick="tourEnd()"></div>
+<div id="tour-highlight" class="hidden"></div>
+<div id="tour-card" class="hidden">
+  <div class="tour-step-label">
+    <span>Tour</span>
+    <div class="tour-dots" id="tour-dots"></div>
+  </div>
+  <div class="tour-title" id="tour-title"></div>
+  <div class="tour-text" id="tour-text"></div>
+  <div class="tour-nav">
+    <div class="tour-nav-left">
+      <button class="tour-btn" id="tour-prev" onclick="tourPrev()">← Back</button>
+      <button class="tour-btn" onclick="tourEnd()">Skip</button>
+    </div>
+    <button class="tour-btn tour-btn-primary" id="tour-next" onclick="tourNext()">Next →</button>
+  </div>
+</div>
 
 <!-- MAIN APP -->
 <div id="app">
@@ -295,7 +598,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 
     <!-- Slides -->
     <div class="sidebar-section">
-      <div class="sidebar-section-title">Slides</div>
+      <div class="sidebar-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+        Slides
+        <span onclick="document.getElementById('about-modal').classList.toggle('open')" title="Layer reference" style="cursor:pointer;font-size:11px;color:var(--text-muted);background:var(--bg-card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-style:normal;letter-spacing:0;text-transform:none;font-weight:500;" onmouseover="this.style.color='var(--ice)'" onmouseout="this.style.color='var(--text-muted)'">ℹ Info</span>
+      </div>
       <div>
         <div class="layer-item active" id="toggle-live" onclick="toggleLayer('live', this)">
           <div class="layer-toggle"></div>
@@ -306,9 +612,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-aspect" onclick="toggleSlide('aspect', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#22c55e"></div>
+          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Aspect <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/dbf83c78-a5f2-433f-8926-ea26c468e752" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Aspect</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('aspect',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -319,7 +625,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#f59e0b"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Buildings <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/a2e23346-77bb-4eab-bed7-098cfdb55e1c" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Buildings</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('buildings',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -328,9 +634,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-dem" onclick="toggleSlide('dem', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#0ea5e9"></div>
+          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Digital Elevation Model (DEM) <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/322f3765-91a0-4f76-a840-49cb3c474cf5" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Digital Elevation Model (DEM)</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('dem',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -339,12 +645,18 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-hazard" onclick="toggleSlide('hazard', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#ef4444"></div>
+          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Hazard Zones <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/8fe73a82-f138-4a52-82a3-271d18209198" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Hazard Zones</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hazard',+this.value,this)">
               <span class="opacity-pct">70%</span>
+            </div>
+            <div class="env-filter-row" onclick="event.stopPropagation()">
+              <label class="env-check"><input type="checkbox" checked onchange="setHazardClass('c1',this.checked)"> Low</label>
+              <label class="env-check"><input type="checkbox" checked onchange="setHazardClass('c2',this.checked)"> Moderate</label>
+              <label class="env-check"><input type="checkbox" checked onchange="setHazardClass('c3',this.checked)"> High</label>
+              <label class="env-check"><input type="checkbox" checked onchange="setHazardClass('c4',this.checked)"> Very High</label>
             </div>
           </div>
         </div>
@@ -352,7 +664,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           <div class="layer-toggle"></div>
           <div class="layer-swatch" style="background:#64748b"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Hillshade <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/d466278b-e06d-43d0-8abe-aef7dccbacee" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Hillshade</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('hillshade',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -361,9 +673,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-protected" onclick="toggleSlide('protected', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#22d3ee"></div>
+          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Protected Areas <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/00491a91-297f-42a1-80e1-06d9b7cee274" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Protected Areas</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('protected',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -372,9 +684,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-roads" onclick="toggleSlide('roads', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#f97316"></div>
+          <div class="layer-swatch" style="background:#3b82f6"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Roads <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/eb186d5f-2c77-4062-91b3-fd87b3f95045" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Roads</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('roads',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -383,9 +695,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-species" onclick="toggleSlide('species', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#8b5cf6"></div>
+          <div class="layer-swatch" style="background:#ef4444"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Species Occurrence <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/57540504-450b-4baf-b838-7b83f28c1c27" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Species Occurrence</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('species',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -394,9 +706,9 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-slope" onclick="toggleSlide('slope', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#eab308"></div>
+          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
-            <div class="layer-name">Slope <a href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/7d673c77-c7c5-45f7-b747-59d61952963f" target="_blank" class="layer-info-link" onclick="event.stopPropagation()">ℹ️ Info</a></div>
+            <div class="layer-name">Slope</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
               <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('slope',+this.value,this)">
               <span class="opacity-pct">70%</span>
@@ -406,7 +718,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
       </div>
     </div>
 
-    <!-- Basemap (single option: terrestris) -->
+    <!-- Basemap -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">Basemap</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -415,12 +727,10 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
       </div>
     </div>
 
-    <!-- Live station cards -->
-    <div class="sidebar-section" id="stations-section">
-      <div class="sidebar-section-title">Live stations <span id="station-count" style="color:var(--text-muted);font-weight:400"></span></div>
-      <div id="station-cards">
-        <div style="font-size:11px;color:var(--text-muted);padding:8px 0;">Fetching from GeoServer…</div>
-      </div>
+    <!-- Legend -->
+    <div class="sidebar-section" id="sidebar-legend-section" style="display:none; flex:1; min-height:0; overflow:hidden; display:none; flex-direction:column;">
+      <div class="sidebar-section-title">Legend</div>
+      <div id="sidebar-legend"></div>
     </div>
 
   </aside>
@@ -438,15 +748,125 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 
 <!-- TRAY -->
 <div id="tray">
+  <!-- Station accordion tiles -->
+  <div id="tray-stations">
+    <div style="font-size:9px;color:var(--text-muted);padding:8px;">Loading…</div>
+  </div>
+
+  <!-- Chart label -->
   <div id="tray-label">
     <div>
-      <div class="tl-title">Weather history last 7 days</div>
-      <div class="tl-sub" id="tl-sub">Alle Stationen</div>
-      <div class="tl-hint" id="tl-hint">Lade Verlaufsdaten…</div>
+      <div class="tl-title">7-day history</div>
+      <div class="tl-hint" id="tl-hint">Loading…</div>
     </div>
-    <div class="tl-range" id="tray-range"></div>
+    <div>
+      <div class="tl-range" id="tray-range"></div>
+      <button id="chart-col-btn" onclick="toggleColPicker(event)">⊞ Select</button>
+    </div>
   </div>
+
+  <!-- Charts -->
   <div id="tray-charts"></div>
+
+  <!-- Column picker popup -->
+  <div id="chart-col-picker" class="hidden"></div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div id="about-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div id="about-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <span class="about-title">About</span>
+      <span class="about-close" onclick="document.getElementById('about-modal').classList.remove('open')">×</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
+      This dashboard was developed as part of the course <span style="color:var(--text-secondary);font-weight:500;">SDI Service Implementation</span> at the <span style="color:var(--text-secondary);font-weight:500;">University of Salzburg &mdash; Z_GIS</span>.
+    </div>
+    <div style="margin-top:24px;">
+      <div style="font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Authors</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <span style="font-size:13px;color:var(--text-primary);font-weight:500;">Mary Muthee</span>
+        <span style="font-size:13px;color:var(--text-primary);font-weight:500;">Asad Ullah</span>
+        <span style="font-size:13px;color:var(--text-primary);font-weight:500;">Louis Schmalisch</span>
+      </div>
+    </div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+      <div style="font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Links</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Live Stations</span>
+          <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/ipsdi_st26/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=ipsdi_st26:sdi_weather_live&outputFormat=application/json" target="_blank">Link</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Weather History</span>
+          <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/ipsdi_st26/wfs?service=WFS&version=1.1.0&request=GetFeature&typeName=ipsdi_st26:sdi_weather_history_7d&outputFormat=application/json" target="_blank">Link</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Aspect</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:aspect_berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/dbf83c78-a5f2-433f-8926-ea26c468e752" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Buildings</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:buildings_Berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/a2e23346-77bb-4eab-bed7-098cfdb55e1c" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Digital Elevation Model</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:dem_berchtesgaden_merged&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/322f3765-91a0-4f76-a840-49cb3c474cf5" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Hazard Zones</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:hazard_zones_berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/8fe73a82-f138-4a52-82a3-271d18209198" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Hillshade</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:hillshade_berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/d466278b-e06d-43d0-8abe-aef7dccbacee" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Protected Areas</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:protected_areas_Berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/00491a91-297f-42a1-80e1-06d9b7cee274" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Roads</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:roads_32n&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/eb186d5f-2c77-4062-91b3-fd87b3f95045" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">Species Occurrence</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:Species_occurence_Berchtesgaden&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/57540504-450b-4baf-b838-7b83f28c1c27" target="_blank">Metadata</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;">
+          <span style="color:var(--text-secondary);">Slope</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:slope_berchtesgaden_2&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
+            <a class="about-link-btn" href="https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/7d673c77-c7c5-45f7-b747-59d61952963f" target="_blank">Metadata</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -469,13 +889,21 @@ function stationName(gridId) { return STATION_NAMES[+gridId] ?? `Station ${gridI
 
 /* ── THRESHOLDS ─────────────────────────────────────── */
 const THR = {
-  precipitation_1h: { warn: 10,  alert: 20  },
-  wind_gusts:       { warn: 80,  alert: 120 },
-  snow_depth:       { warn: 100, alert: 200 },
+  precip_7d:  { warn: 50,  alert: 100 }, // mm accumulated over 7 days
+  wind_gusts: { warn: 80,  alert: 120 },
+  snow_depth: { warn: 100, alert: 200 },
 };
 
+const accumPrecip = {}; // keyed by station id, filled by loadAllHistory
+
 function getStatus(props) {
+  const id    = props[GRID_ID_FIELD];
+  const accum = accumPrecip[id] ?? 0;
+  if (accum >= THR.precip_7d.alert) return 'alert';
+  if (accum >= THR.precip_7d.warn)  return 'warn';
+
   for (const [key, t] of Object.entries(THR)) {
+    if (key === 'precip_7d') continue;
     const v = props[key];
     if (v == null) continue;
     if (v >= t.alert) return 'alert';
@@ -498,12 +926,16 @@ const slideLayers = {
     layers: 'ipsdi_st26:Species_occurence_Berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
   aspect: L.tileLayer.wms(`${GS}/wms`, {
     layers: 'ipsdi_st26:aspect_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
-  buildings: L.tileLayer.wms(`${GS}/wms`, {
-    layers: 'ipsdi_st26:buildings_Berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  buildings: L.tileLayer.wms(`${GS}/ipsdi_st26/wms`, {
+    layers: 'ipsdi_st26:buildings_Berchtesgaden', styles: 'ipsdi_st26:berchtesgaden_buildings',
+    format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7,
+    env: 'g1:0.85;g2:0.85;g3:0.85;g4:0.85;g5:0.85;g6:0.85;g7:0.85;g8:0.85;g9:0.85;g10:0.6'}),
   dem: L.tileLayer.wms(`${GS}/wms`, {
     layers: 'ipsdi_st26:dem_berchtesgaden_merged', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
-  hazard: L.tileLayer.wms(`${GS}/wms`, {
-    layers: 'ipsdi_st26:hazard_zones_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  hazard: L.tileLayer.wms(`${GS}/ipsdi_st26/wms`, {
+    layers: 'ipsdi_st26:hazard_zones_berchtesgaden', styles: 'ipsdi_st26:berchtesgaden_hazard_zones',
+    format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7,
+    env: 'c1:1;c2:1;c3:1;c4:1'}),
   hillshade: L.tileLayer.wms(`${GS}/wms`, {
     layers: 'ipsdi_st26:hillshade_berchtesgaden', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
   protected: L.tileLayer.wms(`${GS}/wms`, {
@@ -512,8 +944,6 @@ const slideLayers = {
     layers: 'ipsdi_st26:roads_32n', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
   slope: L.tileLayer.wms(`${GS}/wms`, {
     layers: 'ipsdi_st26:slope_berchtesgaden_2', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
-  alpenwetter: L.tileLayer.wms(`${GS}/wms`, {
-    layers: 'ipsdi_st26:sdi_dwd_alpenwetter', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'DWD / GeoServer', opacity: 0.7}),
 };
 
 const map = L.map('map', { center: [47.557373, 12.946258], zoom: 11, layers: [basemaps.terrestris], zoomControl: false });
@@ -534,6 +964,10 @@ let GRID_ID_FIELD = 'station_id'; // auto-detected from first WFS response
 
 /* ── LAYER VISIBILITY STATE ───────────────────────────── */
 let liveGeoJSON = null;
+const liveWMS = L.tileLayer.wms(`${GS}/ipsdi_st26/wms`, {
+  layers: 'ipsdi_st26:sdi_weather_live',
+  format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer',
+});
 const slideState = {
   species: false,
   aspect: false,
@@ -544,7 +978,6 @@ const slideState = {
   protected: false,
   roads: false,
   slope: false,
-  alpenwetter: true,
 };
 const layerState = { live: true };
 
@@ -552,9 +985,50 @@ function toggleLayer(name, el) {
   el.classList.toggle('active');
   layerState[name] = el.classList.contains('active');
 
-  if (name === 'live' && liveGeoJSON) {
-    layerState.live ? map.addLayer(liveGeoJSON) : map.removeLayer(liveGeoJSON);
+  if (name === 'live') {
+    if (layerState.live) {
+      liveWMS.addTo(map);
+      if (liveGeoJSON) map.addLayer(liveGeoJSON);
+    } else {
+      map.removeLayer(liveWMS);
+      if (liveGeoJSON) map.removeLayer(liveGeoJSON);
+    }
+    updateLegend();
   }
+}
+
+const LEGEND_LAYERS = {
+  species:    { label: 'Species Occurrence',    id: 'ipsdi_st26:Species_occurence_Berchtesgaden' },
+  aspect:     { label: 'Aspect',                id: 'ipsdi_st26:aspect_berchtesgaden' },
+  buildings:  { label: 'Buildings',             id: 'ipsdi_st26:buildings_Berchtesgaden',  style: 'ipsdi_st26:berchtesgaden_buildings' },
+  dem:        { label: 'Digital Elevation Model', id: 'ipsdi_st26:dem_berchtesgaden_merged' },
+  hazard:     { label: 'Hazard Zones',          id: 'ipsdi_st26:hazard_zones_berchtesgaden', style: 'ipsdi_st26:berchtesgaden_hazard_zones' },
+  hillshade:  { label: 'Hillshade',             id: 'ipsdi_st26:hillshade_berchtesgaden' },
+  protected:  { label: 'Protected Areas',       id: 'ipsdi_st26:protected_areas_Berchtesgaden' },
+  roads:      { label: 'Roads',                 id: 'ipsdi_st26:roads_32n' },
+  slope:      { label: 'Slope',                 id: 'ipsdi_st26:slope_berchtesgaden_2' },
+  live:       { label: 'Weather Stations',      id: 'ipsdi_st26:sdi_weather_live' },
+};
+
+function updateLegend() {
+  const active = [
+    ...Object.entries(slideState).filter(([, v]) => v).map(([k]) => k),
+    ...(layerState.live ? ['live'] : []),
+  ];
+  const section = document.getElementById('sidebar-legend-section');
+  const items   = document.getElementById('sidebar-legend');
+  if (!active.length) { section.style.display = 'none'; return; }
+  items.innerHTML = active.map(key => {
+    const info = LEGEND_LAYERS[key];
+    if (!info) return '';
+    const styleParam = info.style ? `&STYLE=${encodeURIComponent(info.style)}` : '';
+    const url = `${GS}/wms?SERVICE=WMS&VERSION=1.1.0&REQUEST=GetLegendGraphic&FORMAT=image/png&LAYER=${info.id}${styleParam}&TRANSPARENT=true&LEGEND_OPTIONS=forceLabels:on`;
+    return `<div class="legend-item">
+      <div class="legend-item-label">${info.label}</div>
+      <img src="${url}" onerror="this.closest('.legend-item').style.display='none'">
+    </div>`;
+  }).join('');
+  section.style.display = 'flex';
 }
 
 function toggleSlide(name, el) {
@@ -564,33 +1038,31 @@ function toggleSlide(name, el) {
   if (!layer) return;
   if (slideState[name]) {
     map.addLayer(layer);
-    if (name === 'alpenwetter') showAlpenTicker();
   } else {
     map.removeLayer(layer);
-    if (name === 'alpenwetter') hideAlpenTicker();
   }
+  updateLegend();
+}
+
+const hazardEnv = { c1: true, c2: true, c3: true, c4: true };
+
+function setHazardClass(cls, visible) {
+  hazardEnv[cls] = visible;
+  const env = Object.entries(hazardEnv).map(([k, v]) => `${k}:${v ? 1 : 0}`).join(';');
+  slideLayers.hazard.setParams({ env });
 }
 
 function setLayerOpacity(name, value, sliderEl) {
   if (sliderEl) sliderEl.nextElementSibling.textContent = Math.round(value * 100) + '%';
   if (name === 'live') {
-    if (liveGeoJSON) {
-      liveGeoJSON.eachLayer(layer => {
-        const isSelected = layer.feature?.properties?.station_id === selectedStation;
-        layer.setStyle({ opacity: value, fillOpacity: value * (isSelected ? 0.75 : 0.35) });
-      });
-    }
+    liveWMS.setOpacity(value);
   } else if (slideLayers[name]) {
     slideLayers[name].setOpacity(value);
   }
 }
 
 /* ── FETCH HELPERS ────────────────────────────────────── */
-function setFetchState(state, label) {
-  const dot = document.getElementById('fetch-dot');
-  dot.className = state;
-  document.getElementById('fetch-label').textContent = label;
-}
+function setFetchState(state, label) {}
 
 function fmt(v, dec=1) { return v != null ? Number(v).toFixed(dec) : '—'; }
 function fmtTime(ts)   { return ts ? new Date(ts).toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' }) : '—'; }
@@ -599,12 +1071,17 @@ function fmtDate(ts)   { return ts ? new Date(ts).toLocaleDateString('de-AT', { 
 /* ── LIVE WFS STATIONS ────────────────────────────────── */
 let selectedStation = null;
 let selectedLiveLayer = null;
+let lastLiveProps = [];
+let lastStationHistoryRows = null; // rows for the currently selected station
 
 function getLiveLayer(gridId) {
   if (!liveGeoJSON) return null;
+  const sid = String(gridId);
   let hit = null;
   liveGeoJSON.eachLayer(layer => {
-    if (layer.feature?.properties?.station_id === gridId) hit = layer;
+    const props = layer.feature?.properties ?? {};
+    const lid = String(props[GRID_ID_FIELD] ?? props.station_id ?? props.grid_id ?? '');
+    if (lid === sid) hit = layer;
   });
   return hit;
 }
@@ -649,12 +1126,10 @@ async function loadLiveStations() {
 
     liveGeoJSON = L.geoJSON(fc, {
       pointToLayer: (feature, latlng) => {
-        const p      = feature.properties;
-        const status = getStatus(p);
-        const color  = status === 'alert' ? '#ef4444' : status === 'warn' ? '#f59e0b' : '#4fc3f7';
+        const p = feature.properties;
         return L.circleMarker(latlng, {
-          radius: 7, color, fillColor: color,
-          fillOpacity: 0.85, weight: 1.5
+          radius: 10, color: 'transparent', fillColor: 'transparent',
+          fillOpacity: 0, weight: 0, opacity: 0,
         });
       },
       onEachFeature: (feature, layer) => {
@@ -671,10 +1146,7 @@ async function loadLiveStations() {
         `, { className: 'biwa-popup' });
 
         layer.on('click', () => {
-          selectedStation = id;
-          highlightCard(id);
-          updateActiveStationLayer(layer);
-          loadStationHistory(id);
+          selectStation(id);
         });
       }
     });
@@ -687,10 +1159,10 @@ async function loadLiveStations() {
     // Update status bar with average across all stations
     const props = fc.features.map(f => f.properties);
     updateStatusBar(props);
+    updateSystemStatus(props);
     renderStationCards(props);
 
-    setFetchState('ok', `Updated ${new Date().toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' })}`);
-    updateClock();
+    setFetchState('ok', '');
 
   } catch (err) {
     console.error('WFS live fetch failed:', err);
@@ -704,72 +1176,241 @@ function avg(props, key) {
 }
 
 function updateStatusBar(props) {
-  // Overall alert state
   const overallStatus = props.map(p => getStatus(p));
   const overall = overallStatus.includes('alert') ? 'alert'
                 : overallStatus.includes('warn')  ? 'warn' : 'ok';
 
+  const dot  = document.getElementById('alert-dot');
+  const tag  = document.getElementById('alert-tag');
+  const desc = document.getElementById('alert-desc');
+
+  dot.className  = `pulse-dot${overall === 'ok' ? '' : ' ' + overall}`;
+  tag.className  = `level-tag${overall === 'ok' ? '' : ' ' + overall}`;
+  tag.textContent  = overall.toUpperCase();
+  desc.textContent = overall === 'alert' ? 'Threshold exceeded — action required'
+                   : overall === 'warn'  ? 'Warning threshold reached'
+                   : 'Normal operations';
+}
+
+function updateSystemStatus(props) {
+  const STALE_MS = 3 * 60 * 60 * 1000; // 3 hours
+  const now    = Date.now();
+  const total  = props.length;
+  const online = props.filter(p => p.timestamp && (now - new Date(p.timestamp).getTime()) < STALE_MS).length;
+  const dot    = document.getElementById('sys-dot');
+  const desc   = document.getElementById('sys-desc');
+  if (total === 0) {
+    dot.className    = 'sys-dot alert';
+    desc.textContent = 'No data received';
+  } else if (online === total) {
+    dot.className    = 'sys-dot ok';
+    desc.textContent = `All ${total} stations online`;
+  } else if (online > 0) {
+    dot.className    = 'sys-dot warn';
+    desc.textContent = `${online} / ${total} stations online`;
+  } else {
+    dot.className    = 'sys-dot alert';
+    desc.textContent = 'No stations responding';
+  }
+}
+
+/* ── THRESHOLD PANEL ─────────────────────────────────── */
+function thresholdBar(value, warnAt, alertAt) {
+  if (value == null) return '';
+  const max  = alertAt * 1.2;
+  const pct  = Math.min(100, (value / max) * 100).toFixed(1);
+  const cls  = value >= alertAt ? 'alert' : value >= warnAt ? 'warn' : 'ok';
+  return `<div class="thr-bar"><div class="thr-bar-fill ${cls}" style="width:${pct}%"></div></div>`;
+}
+
+function buildThresholdPanel(props) {
+  if (!props.length) return '<div style="color:var(--text-muted);font-size:11px">No live data yet</div>';
+
+  const ORDER = { alert: 0, warn: 1, ok: 2 };
+  const sorted = [...props].sort((a, b) => ORDER[getStatus(a)] - ORDER[getStatus(b)]);
+
+  const rows = sorted.map(p => {
+    const id    = String(p[GRID_ID_FIELD]);
+    const rowSt = getStatus(p);
+    const accum = accumPrecip[id] ?? 0;
+    const gusts = p.wind_gusts != null ? Number(p.wind_gusts) : null;
+    const snow  = p.snow_depth != null ? Number(p.snow_depth) : null;
+
+    const precipSt = accum >= THR.precip_7d.alert  ? 'alert' : accum >= THR.precip_7d.warn  ? 'warn' : 'ok';
+    const gustsSt  = gusts != null ? (gusts >= THR.wind_gusts.alert ? 'alert' : gusts >= THR.wind_gusts.warn ? 'warn' : 'ok') : null;
+    const snowSt   = snow  != null ? (snow  >= THR.snow_depth.alert ? 'alert' : snow  >= THR.snow_depth.warn ? 'warn' : 'ok') : null;
+
+    const precipCell = `<div class="thr-bar-wrap">
+      <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm</span>
+      ${thresholdBar(accum, THR.precip_7d.warn, THR.precip_7d.alert)}
+    </div>`;
+    const gustsCell  = gusts != null
+      ? `<div class="thr-bar-wrap"><span class="thr-cell ${gustsSt}">${gusts.toFixed(0)} km/h</span>${thresholdBar(gusts, THR.wind_gusts.warn, THR.wind_gusts.alert)}</div>`
+      : `<span class="thr-cell na">—</span>`;
+    const snowCell   = snow  != null
+      ? `<div class="thr-bar-wrap"><span class="thr-cell ${snowSt}">${snow.toFixed(0)} cm</span>${thresholdBar(snow, THR.snow_depth.warn, THR.snow_depth.alert)}</div>`
+      : `<span class="thr-cell na">—</span>`;
+
+    return `<tr class="thr-row ${rowSt}">
+      <td class="thr-station">${stationName(id)}</td>
+      <td>${precipCell}</td>
+      <td>${gustsCell}</td>
+      <td>${snowCell}</td>
+    </tr>`;
+  }).join('');
+
+  const legend = `<div class="thr-legend">
+    <div class="thr-legend-title">Thresholds</div>
+    <div class="thr-legend-grid">
+      <div class="thr-leg-item">
+        <span class="thr-leg-label">Precip 7d</span>
+        <span class="thr-leg-band warn">≥ ${THR.precip_7d.warn} mm</span>
+        <span class="thr-leg-sep">·</span>
+        <span class="thr-leg-band alert">≥ ${THR.precip_7d.alert} mm</span>
+      </div>
+      <div class="thr-leg-item">
+        <span class="thr-leg-label">Wind Gusts</span>
+        <span class="thr-leg-band warn">≥ ${THR.wind_gusts.warn} km/h</span>
+        <span class="thr-leg-sep">·</span>
+        <span class="thr-leg-band alert">≥ ${THR.wind_gusts.alert} km/h</span>
+      </div>
+      <div class="thr-leg-item">
+        <span class="thr-leg-label">Snow Depth</span>
+        <span class="thr-leg-band warn">≥ ${THR.snow_depth.warn} cm</span>
+        <span class="thr-leg-sep">·</span>
+        <span class="thr-leg-band alert">≥ ${THR.snow_depth.alert} cm</span>
+      </div>
+    </div>
+  </div>`;
+
+  return `<table class="thr-table">
+    <thead><tr>
+      <th>Station</th>
+      <th style="text-align:right">Precip 7d</th>
+      <th style="text-align:right">Wind Gusts</th>
+      <th style="text-align:right">Snow Depth</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>${legend}`;
+}
+
+function toggleThresholdPanel() {
+  const panel = document.getElementById('thr-panel');
+  if (panel.classList.contains('hidden')) {
+    document.getElementById('thr-content').innerHTML = buildThresholdPanel(lastLiveProps);
+    panel.classList.remove('hidden');
+  } else {
+    panel.classList.add('hidden');
+  }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#alert-level') && !e.target.closest('#thr-panel')) {
+    document.getElementById('thr-panel')?.classList.add('hidden');
+  }
+});
+
+function relativeTime(ts) {
+  if (!ts) return '—';
+  const mins = Math.round((Date.now() - new Date(ts).getTime()) / 60000);
+  if (mins < 1)  return 'just now';
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24)  return `${hrs} h ago`;
+  return fmtDate(ts);
+}
+
+function stationSummaryHTML() {
+  if (!lastStationHistoryRows?.length) {
+    return '<div class="st-divider"></div><div class="st-summary-title">Loading summary…</div>';
+  }
+  const rows      = lastStationHistoryRows;
+  const tempCol   = 'temperature_2m' in rows[0] ? 'temperature_2m' : 'temperature';
+  const precipCol = 'precipitation_1h' in rows[0] ? 'precipitation_1h' : 'precipitation';
+  const temps   = rows.map(r => r[tempCol]).filter(v => v != null && !isNaN(Number(v))).map(Number);
+  const precips = rows.map(r => r[precipCol]).filter(v => v != null && !isNaN(Number(v))).map(Number);
+  const tMin = temps.length   ? Math.min(...temps).toFixed(1) : '—';
+  const tMax = temps.length   ? Math.max(...temps).toFixed(1) : '—';
+  const tAvg = temps.length   ? (temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1) : '—';
+  const pSum = precips.length ? precips.reduce((a,b)=>a+b,0).toFixed(1) : '—';
+  return `<div class="st-divider"></div>
+    <div class="st-summary-title">7-Day Summary</div>
+    <div class="st-sum-row"><span class="st-sl">Min</span><span class="st-sv">${tMin} °C</span></div>
+    <div class="st-sum-row"><span class="st-sl">Max</span><span class="st-sv">${tMax} °C</span></div>
+    <div class="st-sum-row"><span class="st-sl">Avg</span><span class="st-sv">${tAvg} °C</span></div>
+    <div class="st-sum-row"><span class="st-sl">Precip Σ</span><span class="st-sv">${pSum} mm</span></div>`;
 }
 
 function renderStationCards(props) {
-  document.getElementById('station-count').textContent = `(${props.length})`;
-  const container = document.getElementById('station-cards');
-  container.innerHTML = props.map(p => {
-    const id     = p[GRID_ID_FIELD];
-    const status = getStatus(p);
-    const badge  = status === 'alert' ? 'ALERT' : status === 'warn' ? 'WARN' : 'OK';
-    return `
-      <div class="station-card ${status} ${selectedStation === id ? 'selected' : ''}"
-           id="card-${id}" onclick="selectStation('${id}')">
-        <div class="sc-header">
-          <div class="sc-name">${stationName(id)}</div>
-          <div class="sc-badge ${status}">${badge}</div>
+  lastLiveProps = props;
+  const ORDER = { alert: 0, warn: 1, ok: 2 };
+  const sorted = [...props].sort((a, b) => ORDER[getStatus(a)] - ORDER[getStatus(b)]);
+
+  const container = document.getElementById('tray-stations');
+  container.innerHTML = sorted.map(p => {
+    const id       = String(p[GRID_ID_FIELD]);  // always string for consistent === comparison
+    const status   = getStatus(p);
+    const isActive = selectedStation === id;
+
+    if (isActive) {
+      const temp  = p.temperature_2m ?? p.temperature;
+      const prec  = p.precipitation_1h ?? p.precipitation;
+      const gusts = p.wind_gusts;
+      const snow  = p.snow_depth;
+      const tempVal  = temp  != null ? `${fmt(temp)}<span class="st-cu">°C</span>`   : '<span style="opacity:.4">N/A</span>';
+      const precVal  = prec  != null ? `${fmt(prec)}<span class="st-cu">mm</span>`   : '<span style="opacity:.4">N/A</span>';
+      const gustVal  = gusts != null ? `${fmt(gusts,0)}<span class="st-cu">km/h</span>` : '<span style="opacity:.4">N/A</span>';
+      const snowVal  = snow  != null ? `${fmt(snow)}<span class="st-cu">cm</span>`   : '<span style="opacity:.4">N/A</span>';
+      return `<div class="st-tile ${status} selected" id="card-${id}" onclick="selectStation('${id}')">
+        <div class="st-head">
+          <div class="st-name">${stationName(id)}</div>
+          <div class="st-badge ${status}">${status.toUpperCase()}</div>
         </div>
-        <div class="sc-grid">
-          <div class="sc-metric">
-            <div class="scm-label">Temp</div>
-            <div class="scm-value">${fmt(p.temperature_2m)}<span class="u"> °C</span></div>
-          </div>
-          <div class="sc-metric">
-            <div class="scm-label">Precip</div>
-            <div class="scm-value">${fmt(p.precipitation_1h)}<span class="u"> mm</span></div>
-          </div>
-          <div class="sc-metric">
-            <div class="scm-label">Wind</div>
-            <div class="scm-value">${fmt(p.wind_gusts, 0)}<span class="u"> km/h</span></div>
-          </div>
-          <div class="sc-metric">
-            <div class="scm-label">Snow</div>
-            <div class="scm-value">N/A</div>
-          </div>
+        <div class="st-grid">
+          <div><div class="st-cl">TEMP</div><div class="st-cv">${tempVal}</div></div>
+          <div><div class="st-cl">PRECIP</div><div class="st-cv">${precVal}</div></div>
+          <div><div class="st-cl">WIND</div><div class="st-cv">${gustVal}</div></div>
+          <div><div class="st-cl">SNOW</div><div class="st-cv">${snowVal}</div></div>
         </div>
-        <div class="sc-updated">Last reading: ${fmtTime(p.timestamp)}</div>
-      </div>
-    `;
+        ${stationSummaryHTML()}
+        <div class="st-time">Last reading: ${p.timestamp ? fmtTime(p.timestamp) : '—'}</div>
+      </div>`;
+    }
+    return `<div class="st-tile ${status}" id="card-${id}" onclick="selectStation('${id}')">
+      <div class="st-name">${stationName(id)}</div>
+    </div>`;
   }).join('');
 }
 
 function selectStation(gridId) {
-  selectedStation = gridId;
-  highlightCard(gridId);
-  const layer = getLiveLayer(gridId);
-  if (layer) {
-    updateActiveStationLayer(layer);
-    map.panTo(layer.getLatLng());
-    layer.openPopup();
+  gridId = String(gridId);
+  if (selectedStation === gridId) {
+    selectedStation = null;
+    lastStationHistoryRows = null;
+    if (selectedLiveLayer) {
+      selectedLiveLayer.setStyle({ weight: 1.5, fillOpacity: 0.85 });
+      selectedLiveLayer = null;
+    }
+    if (lastLiveProps.length) renderStationCards(lastLiveProps);
+    loadAllHistory();
+    return;
   }
+  selectedStation = gridId;
+  lastStationHistoryRows = null;
+  if (lastLiveProps.length) renderStationCards(lastLiveProps);
+  const layer = getLiveLayer(gridId);
+  if (layer) updateActiveStationLayer(layer);
   loadStationHistory(gridId);
 }
 
 function highlightCard(gridId) {
-  document.querySelectorAll('.station-card').forEach(c => c.classList.remove('selected'));
-  const card = document.getElementById('card-' + gridId);
-  if (card) card.classList.add('selected');
+  // visual highlight handled by renderStationCards re-render
 }
 
-/* ── HISTORY WFS (7-day histograms) ──────────────────── */
+/* ── HISTORY WFS (7-day time series) ─────────────────── */
 const SKIP_PROPS  = new Set(['grid_id','station_id','id','fid','source','geom','geometry','the_geom']);
-const HIST_COLORS = ['#a78bfa','#4fc3f7','#f59e0b','#4ade80','#f97316','#22d3ee','#ec4899','#84cc16'];
+const HIST_COLORS = ['#C03030','#1A6A9A','#A86510','#2E8B50','#B05520','#1A7A8A','#7055C0','#5A7A20'];
+const BAR_COLS    = new Set(['precipitation_1h','precipitation']);
 
 const COLUMN_UNITS = {
   temperature_2m:    '°C',
@@ -792,81 +1433,329 @@ function fmtColName(k) {
   return unit ? `${label} (${unit})` : label;
 }
 
-function buildHistogram(values, bins = 12) {
-  const valid = values.filter(v => v != null && !isNaN(v)).map(Number);
-  if (!valid.length) return null;
-  const min = Math.min(...valid), max = Math.max(...valid);
-  if (min === max) return { counts: [valid.length], edges: [min], min, max };
-  const size = (max - min) / bins;
-  const counts = new Array(bins).fill(0);
-  valid.forEach(v => { const i = Math.min(Math.floor((v - min) / size), bins - 1); counts[i]++; });
-  const edges = Array.from({ length: bins }, (_, i) => +(min + i * size).toFixed(2));
-  return { counts, edges, min, max };
+let availableChartCols = [];
+let selectedChartCols  = new Set();
+let _colPickerOpen     = false;
+
+function initChartCols(cols) {
+  availableChartCols = cols;
+  if (selectedChartCols.size === 0) {
+    // Default: temperature + precipitation columns
+    cols.forEach(c => { if (/^temperature|^precipitation/.test(c)) selectedChartCols.add(c); });
+    if (selectedChartCols.size === 0) cols.slice(0, 2).forEach(c => selectedChartCols.add(c));
+  } else {
+    // Prune cols that no longer exist in this dataset
+    [...selectedChartCols].forEach(c => { if (!cols.includes(c)) selectedChartCols.delete(c); });
+    if (selectedChartCols.size === 0)
+      cols.forEach(c => { if (/^temperature|^precipitation/.test(c)) selectedChartCols.add(c); });
+  }
 }
 
-function drawHistogramChart(canvas, hist, color) {
-  if (!canvas || !hist) return;
+function renderColPicker() {
+  const picker = document.getElementById('chart-col-picker');
+  picker.innerHTML = `<div class="ccp-title">Show charts</div>` +
+    availableChartCols.map(c => `
+      <div class="col-pick-item">
+        <input type="checkbox" id="ccp-${c}" ${selectedChartCols.has(c) ? 'checked' : ''}
+          onchange="toggleChartCol('${c}', this.checked)">
+        <label for="ccp-${c}">${fmtColName(c)}</label>
+      </div>`).join('');
+}
+
+function toggleColPicker(e) {
+  e.stopPropagation();
+  const picker = document.getElementById('chart-col-picker');
+  _colPickerOpen = !_colPickerOpen;
+  if (_colPickerOpen) {
+    renderColPicker();
+    const btn = document.getElementById('chart-col-btn');
+    const r   = btn.getBoundingClientRect();
+    picker.style.left   = r.left + 'px';
+    picker.style.bottom = (window.innerHeight - r.top + 6) + 'px';
+    picker.classList.remove('hidden');
+    // Close on outside click
+    setTimeout(() => document.addEventListener('click', _closeColPicker, { once: true }), 0);
+  } else {
+    picker.classList.add('hidden');
+  }
+}
+
+function _closeColPicker() {
+  document.getElementById('chart-col-picker').classList.add('hidden');
+  _colPickerOpen = false;
+}
+
+function toggleChartCol(col, checked) {
+  if (checked) selectedChartCols.add(col);
+  else selectedChartCols.delete(col);
+  // Re-render charts with current data
+  const rows = lastStationHistoryRows ?? _lastAllHistoryRows;
+  if (rows) renderCharts(rows);
+}
+
+function drawTimeSeriesChart(canvas, points, color, isBar) {
+  if (!canvas || !points.length) return;
   const wrap = canvas.parentElement;
   const W = wrap.offsetWidth, H = wrap.offsetHeight;
   if (!W || !H) return;
-  canvas.width  = W * devicePixelRatio;
-  canvas.height = H * devicePixelRatio;
+  const dpr = devicePixelRatio;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-  const pad = { l: 2, r: 2, t: 4, b: 2 };
+  ctx.scale(dpr, dpr);
+
+  const pad = { l: 26, r: 4, t: 6, b: 4 };
   const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
-  const maxCount = Math.max(...hist.counts, 1);
-  const bw = cw / hist.counts.length;
-  hist.counts.forEach((count, i) => {
-    const bh = (count / maxCount) * ch;
-    const x = pad.l + i * bw, y = pad.t + ch - bh;
-    ctx.fillStyle = color + 'aa';
-    ctx.fillRect(x + 1, y, bw - 2, bh);
-    ctx.strokeStyle = color;
+
+  const xs   = points.map(p => p.x);
+  const ys   = points.map(p => p.y).filter(v => v !== null);
+  if (!ys.length) return;
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  let   minY = Math.min(...ys), maxY = Math.max(...ys);
+  if (isBar) minY = Math.min(0, minY);
+  const rangeY = maxY - minY || 1;
+
+  const toX = t => pad.l + ((t - minX) / (maxX - minX || 1)) * cw;
+  const toY = v => pad.t + ch - ((v - minY) / rangeY) * ch;
+
+  // gridlines + y-axis ticks
+  const TICKS = 3;
+  ctx.font = `${7 * dpr / dpr}px monospace`;
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= TICKS; i++) {
+    const v = minY + (rangeY * i / TICKS);
+    const y = toY(v);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.07)';
     ctx.lineWidth = 0.5;
-    ctx.strokeRect(x + 1, y, bw - 2, bh);
-  });
-  // mean line
-  const mean = hist.edges.reduce((s, e, i) => s + e * hist.counts[i], 0) /
-               Math.max(hist.counts.reduce((a, b) => a + b, 0), 1);
-  const mx = pad.l + ((mean - hist.min) / (hist.max - hist.min || 1)) * cw;
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.setLineDash([3, 3]);
-  ctx.beginPath(); ctx.moveTo(mx, pad.t); ctx.lineTo(mx, pad.t + ch); ctx.stroke();
-  ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--chart-label').trim() || 'rgba(0,0,0,0.5)';
+    ctx.fillText(Number(v).toFixed(1), pad.l - 2, y + 3);
+  }
+
+  if (isBar) {
+    const bw = Math.max(1, (cw / points.length) - 1);
+    const y0 = toY(0);
+    points.forEach(p => {
+      if (p.y === null) return; // skip null — leave gap
+      const x  = toX(p.x) - bw / 2;
+      const y1 = toY(p.y);
+      ctx.fillStyle = color + 'bb';
+      ctx.fillRect(x, Math.min(y0, y1), bw, Math.abs(y0 - y1) || 1);
+    });
+  } else {
+    // area fill — use only non-null points (fill connects across gaps, acceptable)
+    const nonNull = points.filter(p => p.y !== null);
+    if (nonNull.length >= 2) {
+      ctx.beginPath();
+      nonNull.forEach((p, i) => { i === 0 ? ctx.moveTo(toX(p.x), toY(p.y)) : ctx.lineTo(toX(p.x), toY(p.y)); });
+      ctx.lineTo(toX(nonNull.at(-1).x), pad.t + ch);
+      ctx.lineTo(toX(nonNull[0].x),     pad.t + ch);
+      ctx.closePath();
+      ctx.fillStyle = color + '22';
+      ctx.fill();
+    }
+    // line — moveTo at null or after null to draw visible gaps
+    ctx.beginPath();
+    let penDown = false;
+    points.forEach(p => {
+      if (p.y === null) { penDown = false; return; }
+      const x = toX(p.x), y = toY(p.y);
+      if (!penDown) { ctx.moveTo(x, y); penDown = true; }
+      else          { ctx.lineTo(x, y); }
+    });
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
 }
 
-function renderHistograms(rows, label) {
-  const cols = Object.keys(rows[0]).filter(k => {
+function setupChartTooltips() {
+  const tooltip = document.getElementById('chart-tooltip');
+  document.querySelectorAll('.tc-canvas-wrap canvas[data-col]').forEach(canvas => {
+    const col    = canvas.dataset.col;
+    const color  = canvas.dataset.color;
+    const unit   = COLUMN_UNITS[col] ?? '';
+    canvas.addEventListener('mousemove', e => {
+      const pts = canvas._pts;
+      if (!pts?.length) return;
+      const rect = canvas.getBoundingClientRect();
+      const mx   = e.clientX - rect.left;
+      const pad  = 26;
+      const plotW = rect.width - pad - 4;
+      const xs    = pts.map(p => p.x);
+      const hovX  = Math.min(...xs) + ((mx - pad) / plotW) * (Math.max(...xs) - Math.min(...xs));
+      const near  = pts.reduce((a, b) => Math.abs(b.x - hovX) < Math.abs(a.x - hovX) ? b : a);
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top  = (e.clientY - 28) + 'px';
+      tooltip.innerHTML  = `<span style="color:${color}">${Number(near.y).toFixed(2)} ${unit}</span>&nbsp;&nbsp;${fmtDate(near.ts)} ${fmtTime(near.ts)}`;
+    });
+    canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+  });
+}
+
+function compassLabel(deg) {
+  if (deg == null || isNaN(deg)) return '';
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(Number(deg) / 22.5) % 16];
+}
+
+function drawWindRose(canvas, deg, color) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  if (!w || !h) return;
+  canvas.width  = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cx = w / 2, cy = h / 2;
+  const r  = Math.min(w, h) / 2 - 6;
+  const cs = getComputedStyle(document.documentElement);
+  const colBorder = cs.getPropertyValue('--border-lit').trim() || 'rgba(140,192,235,0.7)';
+  const colText   = cs.getPropertyValue('--text-muted').trim()  || '#7A9AB5';
+  const colBg     = cs.getPropertyValue('--bg-card').trim()     || '#FFEBCC';
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = colBg;
+  ctx.fill();
+  ctx.strokeStyle = colBorder;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Tick marks
+  for (let i = 0; i < 16; i++) {
+    const a = (i * 22.5 - 90) * Math.PI / 180;
+    const inner = i % 4 === 0 ? r - 10 : r - 5;
+    ctx.beginPath();
+    ctx.moveTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+    ctx.lineTo(cx + inner * Math.cos(a), cy + inner * Math.sin(a));
+    ctx.strokeStyle = colBorder;
+    ctx.lineWidth = i % 4 === 0 ? 1.5 : 0.8;
+    ctx.stroke();
+  }
+
+  // Cardinal labels
+  const cardinals = [['N', 0], ['E', 90], ['S', 180], ['W', 270]];
+  ctx.font = `bold 9px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  cardinals.forEach(([label, angleDeg]) => {
+    const a  = (angleDeg - 90) * Math.PI / 180;
+    const lr = r - 18;
+    ctx.fillStyle = label === 'N' ? color : colText;
+    ctx.fillText(label, cx + lr * Math.cos(a), cy + lr * Math.sin(a));
+  });
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = colBorder;
+  ctx.fill();
+
+  if (deg == null || isNaN(deg)) return;
+
+  // Arrow — meteorological convention: direction FROM which wind blows
+  // Arrow tail at edge, head pointing to center
+  const rad  = (Number(deg) - 90) * Math.PI / 180;
+  const arrowR = r - 22;
+  const tx = cx + arrowR * Math.cos(rad);   // tail (outer)
+  const hx = cx - (arrowR * 0.4) * Math.cos(rad); // head (inner, towards center)
+  const ty = cy + arrowR * Math.sin(rad);
+  const hy = cy - (arrowR * 0.4) * Math.sin(rad);
+
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(hx, hy);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Arrowhead
+  const headLen = 9, headAngle = Math.PI / 5;
+  const backRad = rad + Math.PI; // pointing back from head to tail
+  ctx.beginPath();
+  ctx.moveTo(hx, hy);
+  ctx.lineTo(hx + headLen * Math.cos(backRad - headAngle), hy + headLen * Math.sin(backRad - headAngle));
+  ctx.lineTo(hx + headLen * Math.cos(backRad + headAngle), hy + headLen * Math.sin(backRad + headAngle));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+let _lastAllHistoryRows = null;
+
+function renderCharts(rows) {
+  const sorted = [...rows].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  updateTrayStats(sorted);
+  const allCols = Object.keys(sorted[0] ?? {}).filter(k => {
     if (SKIP_PROPS.has(k) || /time|date|stamp/i.test(k)) return false;
-    const v = rows.find(r => r[k] != null)?.[k];
+    const v = sorted.find(r => r[k] != null)?.[k];
     return v != null && !isNaN(Number(v));
   });
+  initChartCols(allCols);
+  const cols = allCols.filter(c => selectedChartCols.has(c));
+
   const container = document.getElementById('tray-charts');
   container.innerHTML = cols.map((col, i) => {
-    const color  = HIST_COLORS[i % HIST_COLORS.length];
-    const values = rows.map(r => r[col]);
-    const hist   = buildHistogram(values);
-    const last   = values.filter(v => v != null).at(-1);
-    return `
-      <div class="tray-chart">
+    const colorIdx = allCols.indexOf(col);
+    const color = HIST_COLORS[colorIdx % HIST_COLORS.length];
+    const last  = sorted.map(r => r[col]).filter(v => v != null).at(-1);
+    if (col === 'wind_direction') {
+      const deg = last != null ? Math.round(Number(last)) : null;
+      return `<div class="tray-chart windrose">
         <div class="tc-header">
-          <div class="tc-name">${fmtColName(col)}</div>
-          <div class="tc-value" style="color:${color}">${last != null ? Number(last).toFixed(1) : '—'}</div>
+          <div class="tc-name">Wind Dir (°)</div>
+          <div class="tc-value" style="color:${color}">${deg != null ? deg + '°' : '—'}</div>
         </div>
-        <div class="tc-canvas-wrap"><canvas id="hc-${i}"></canvas></div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">
-          <span>${hist ? Number(hist.min).toFixed(1) : ''}</span>
-          <span>${hist ? Number(hist.max).toFixed(1) : ''}</span>
+        <div class="tc-rose-wrap">
+          <canvas id="hc-${i}" data-col="${col}" data-color="${color}" data-deg="${deg ?? ''}"></canvas>
         </div>
+        <div class="tc-rose-compass">${compassLabel(deg)}</div>
       </div>`;
+    }
+    return `<div class="tray-chart">
+      <div class="tc-header">
+        <div class="tc-name">${fmtColName(col)}</div>
+        <div class="tc-value" style="color:${color}">${last != null ? Number(last).toFixed(1) : '—'}</div>
+      </div>
+      <div class="tc-canvas-wrap">
+        <canvas id="hc-${i}" data-col="${col}" data-color="${color}"></canvas>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-muted);font-family:var(--font-mono);margin-top:2px">
+        <span>${sorted[0]?.timestamp ? fmtDate(sorted[0].timestamp) : ''}</span>
+        <span>${sorted.at(-1)?.timestamp ? fmtDate(sorted.at(-1).timestamp) : ''}</span>
+      </div>
+    </div>`;
   }).join('');
+
   requestAnimationFrame(() => {
     cols.forEach((col, i) => {
-      drawHistogramChart(document.getElementById(`hc-${i}`),
-        buildHistogram(rows.map(r => r[col])), HIST_COLORS[i % HIST_COLORS.length]);
+      const canvas = document.getElementById(`hc-${i}`);
+      if (!canvas) return;
+      const colorIdx = allCols.indexOf(col);
+      const color = HIST_COLORS[colorIdx % HIST_COLORS.length];
+      if (col === 'wind_direction') {
+        const deg = canvas.dataset.deg !== '' ? Number(canvas.dataset.deg) : null;
+        drawWindRose(canvas, deg, color);
+        return;
+      }
+      // Keep nulls in pts so gaps are drawn as breaks, not diagonal lines
+      const pts = sorted
+        .filter(r => r.timestamp)
+        .map(r => {
+          const v = r[col];
+          return { x: new Date(r.timestamp).getTime(), y: (v != null && !isNaN(Number(v))) ? Number(v) : null, ts: r.timestamp };
+        });
+      if (!pts.some(p => p.y !== null)) return;
+      canvas._pts = pts.filter(p => p.y !== null); // tooltip uses only real values
+      drawTimeSeriesChart(canvas, pts, color, BAR_COLS.has(col));
     });
+    setupChartTooltips();
   });
 }
 
@@ -880,43 +1769,127 @@ async function fetchHistory(cqlFilter) {
   catch(e) { console.error('History not JSON:', text.slice(0,500)); throw e; }
 }
 
+/* Groups all-station rows into hourly averages.
+   NULLs are excluded per cell — they never count as 0 and cannot produce NaN. */
+function aggregateByHour(rows) {
+  const toHourMs = ts => {
+    const d = new Date(ts);
+    return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours());
+  };
+  const allCols = new Set(rows.flatMap(r => Object.keys(r)));
+  const buckets = new Map();
+  rows.forEach(r => {
+    if (!r.timestamp) return;
+    const h = toHourMs(r.timestamp);
+    if (!buckets.has(h)) buckets.set(h, []);
+    buckets.get(h).push(r);
+  });
+  return Array.from(buckets.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([h, bucket]) => {
+      const out = { timestamp: new Date(h).toISOString() };
+      allCols.forEach(k => {
+        if (k === 'timestamp') return;
+        const vals = bucket.map(r => r[k]).filter(v => v != null && !isNaN(Number(v)));
+        out[k] = vals.length > 0 ? vals.reduce((a, b) => a + Number(b), 0) / vals.length : null;
+      });
+      return out;
+    });
+}
+
+function updateTrayStats(rows) {
+  const tempCol   = rows[0] && ('temperature_2m' in rows[0]) ? 'temperature_2m' : 'temperature';
+  const precipCol = rows[0] && ('precipitation_1h' in rows[0]) ? 'precipitation_1h' : 'precipitation';
+
+  const temps   = rows.map(r => r[tempCol]).filter(v => v != null && !isNaN(v)).map(Number);
+  const precips = rows.map(r => r[precipCol]).filter(v => v != null && !isNaN(v)).map(Number);
+
+  const tMin  = temps.length   ? Math.min(...temps).toFixed(1)   : '—';
+  const tMax  = temps.length   ? Math.max(...temps).toFixed(1)   : '—';
+  const tAvg  = temps.length   ? (temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(1) : '—';
+  const pSum  = precips.length ? precips.reduce((a,b)=>a+b,0).toFixed(1) : '—';
+  const last  = rows.map(r => r.timestamp).filter(Boolean).sort().at(-1);
+
+  const statsRows = document.getElementById('tray-stats-rows');
+  if (statsRows) statsRows.innerHTML = `
+    <div class="ts-row"><span class="ts-label">Temp min</span><span class="ts-val">${tMin}<span class="u"> °C</span></span></div>
+    <div class="ts-row"><span class="ts-label">Temp max</span><span class="ts-val">${tMax}<span class="u"> °C</span></span></div>
+    <div class="ts-row"><span class="ts-label">Temp avg</span><span class="ts-val">${tAvg}<span class="u"> °C</span></span></div>
+    <div class="ts-row"><span class="ts-label">Precip Σ</span><span class="ts-val">${pSum}<span class="u"> mm</span></span></div>
+  `;
+  const statsUpdated = document.getElementById('tray-stats-updated');
+  if (statsUpdated) statsUpdated.textContent = last ? `Last: ${fmtDate(last)} ${fmtTime(last)}` : '';
+}
+
+function populateStationSelect(stationIds) {
+  const sel = document.getElementById('chart-station-select');
+  while (sel.options.length > 1) sel.remove(1);
+  stationIds.forEach(id => sel.add(new Option(stationName(id), id)));
+}
+
+function onChartStationChange(value) {
+  if (value === 'all') loadAllHistory();
+  else                 loadStationHistory(value);
+}
+
 async function loadAllHistory() {
-  document.getElementById('tl-sub').textContent  = 'Alle Stationen';
-  document.getElementById('tl-hint').textContent = 'Lade Verlaufsdaten…';
+  document.getElementById('tl-hint').textContent = 'Loading history data…';
   try {
     const fc   = await fetchHistory(null);
     const rows = fc.features.map(f => f.properties);
-    if (!rows.length) { document.getElementById('tl-hint').textContent = 'Keine Daten'; return; }
-    const dates = rows.map(r => r.timestamp).filter(Boolean).sort();
-    const nStations = new Set(rows.map(r => r[GRID_ID_FIELD])).size;
-    document.getElementById('tl-hint').textContent  = `${rows.length} Messwerte · ${nStations} Stationen`;
-    document.getElementById('tray-range').textContent = dates.length ? `${fmtDate(dates[0])} → ${fmtDate(dates.at(-1))}` : '';
-    renderHistograms(rows);
+    if (!rows.length) { document.getElementById('tl-hint').textContent = 'No data available'; return; }
+
+    const stationIds = [...new Set(rows.map(r => r[GRID_ID_FIELD]).filter(Boolean))];
+
+    // Compute 7-day precipitation total per station from hourly aggregates to avoid
+    // double-counting when sub-hourly measurements each carry the same precipitation_1h value.
+    Object.keys(accumPrecip).forEach(k => delete accumPrecip[k]);
+    stationIds.forEach(sid => {
+      const stRows = rows.filter(r => String(r[GRID_ID_FIELD]) === String(sid));
+      const hourly = aggregateByHour(stRows);
+      const precipCol = ('precipitation_1h' in (stRows[0] ?? {})) ? 'precipitation_1h' : 'precipitation';
+      hourly.forEach(r => {
+        const v = r[precipCol];
+        if (v != null && !isNaN(v)) accumPrecip[sid] = (accumPrecip[sid] ?? 0) + Number(v);
+      });
+    });
+
+    const nStations = stationIds.length;
+    const aggregated = aggregateByHour(rows);
+    document.getElementById('tl-hint').textContent = `${rows.length} Measurements · ${nStations} Stations · hourly avg`;
+    document.getElementById('tray-range').textContent = aggregated.length
+      ? `${fmtDate(aggregated[0].timestamp)} → ${fmtDate(aggregated.at(-1).timestamp)}` : '';
+    _lastAllHistoryRows = aggregated;
+    renderCharts(aggregated);
   } catch(err) {
     console.error('loadAllHistory failed:', err);
-    document.getElementById('tl-hint').textContent = 'Fehler beim Laden';
+    document.getElementById('tl-hint').textContent = 'Error loading data';
   }
 }
 
 async function loadStationHistory(gridId) {
-  document.getElementById('tl-sub').textContent  = stationName(gridId);
-  document.getElementById('tl-hint').textContent = 'Lade Verlauf…';
+  document.getElementById('tl-hint').textContent = 'Loading history…';
   try {
     const fc   = await fetchHistory(`${GRID_ID_FIELD}='${gridId}'`);
     const rows = fc.features.map(f => f.properties)
                             .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     if (!rows.length) {
-      document.getElementById('tl-hint').textContent = 'Keine Verlaufsdaten';
+      document.getElementById('tl-hint').textContent = 'No history data available';
       document.getElementById('tray-charts').innerHTML = '';
       document.getElementById('tray-range').textContent = '';
+      lastStationHistoryRows = [];
+      if (lastLiveProps.length) renderStationCards(lastLiveProps);
       return;
     }
-    document.getElementById('tl-hint').textContent   = `${rows.length} Messwerte`;
+    lastStationHistoryRows = rows;
+    _lastAllHistoryRows = null;
+    if (lastLiveProps.length) renderStationCards(lastLiveProps);
+    document.getElementById('tl-hint').textContent   = `${rows.length} Measurements`;
     document.getElementById('tray-range').textContent = `${fmtDate(rows[0].timestamp)} → ${fmtDate(rows.at(-1).timestamp)}`;
-    renderHistograms(rows);
+    renderCharts(rows);
   } catch(err) {
     console.error('loadStationHistory failed:', err);
-    document.getElementById('tl-hint').textContent = 'Fehler beim Laden';
+    document.getElementById('tl-hint').textContent = 'Error loading data';
     document.getElementById('tray-range').textContent = '';
   }
 }
@@ -935,7 +1908,7 @@ async function loadAlpenweatherText() {
     const features = fc.features;
 
     if (!features.length) {
-      setTickerText('DWD Alpenwetter · Keine Daten verfügbar · ' + new Date().toLocaleDateString('de-AT'));
+      setTickerText('DWD Alpenwetter · No data available · ' + new Date().toLocaleDateString('de-AT'));
       return;
     }
 
@@ -959,14 +1932,175 @@ function setTickerText(text) {
   el.style.animationDuration = duration + 's';
 }
 
-/* ── CLOCK ────────────────────────────────────────────── */
-function updateClock() {
-  const now = new Date();
-  const p   = n => String(n).padStart(2, '0');
-  document.getElementById('status-time').textContent =
-    `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+
+/* ── GUIDED TOUR ─────────────────────────────────────── */
+const TOUR_STEPS = [
+  // ── 0. Intro (centre) ────────────────────────────────
+  {
+    selector: null,
+    intro: true,
+  },
+  // ── 1. Top bar → System Status ───────────────────────
+  {
+    selector: '#system-status',
+    title: 'System Status',
+    text: 'Indicates how many weather stations are currently online and reporting data. A station is considered offline if its last reading is more than 3 hours old.',
+    position: 'bottom',
+  },
+  // ── 2. Top-left → Hazard Level ───────────────────────
+  {
+    selector: '#alert-level',
+    title: 'Hazard Level',
+    text: 'Shows the overall warning status based on current sensor readings. Click it to open a detailed breakdown of threshold values per station — precipitation, wind gusts, and snow depth.',
+    position: 'bottom',
+  },
+  // ── 3. Down the left → Map Layers ────────────────────
+  {
+    selector: '#sidebar > .sidebar-section:first-of-type',
+    title: 'Map Layers',
+    text: 'Toggle spatial data layers on and off — including live weather stations, terrain, hazard zones, land use and more. Each active layer can have its opacity adjusted with the slider beneath it.',
+    position: 'right',
+  },
+  // ── 4. Further down left → Legend ────────────────────
+  {
+    selector: '#sidebar-legend-section',
+    title: 'Legend',
+    text: 'Shows colour legends for all currently active map layers. The legend updates automatically as you toggle layers on and off.',
+    position: 'right',
+  },
+  // ── 5. Bottom-left → Weather Stations ────────────────
+  {
+    selector: '#tray-stations',
+    title: 'Weather Stations',
+    text: 'Each tile represents one station. Click a tile to expand it and see live readings (temperature, precipitation, wind, snow) and a 7-day statistical summary. Click again to collapse.',
+    position: 'top',
+  },
+  // ── 6. Bottom-right → Charts ─────────────────────────
+  {
+    selector: '#tray-charts',
+    title: '7-Day History Charts',
+    text: 'Time series charts showing the past 7 days of measurements. When no station is selected, all stations are shown as an hourly average. Hover over a chart to read the exact value at any point in time.',
+    position: 'top',
+  },
+  // ── 7. Up the right → Map Controls ───────────────────
+  {
+    selector: '#map-tools',
+    title: 'Map Controls',
+    text: 'Quick controls for navigating the map. The home button (⌂) resets the view to the Berchtesgaden region. The expand button (⤢) toggles fullscreen mode. Use + and − to zoom in and out.',
+    position: 'left',
+  },
+];
+
+let tourStep = 0;
+
+function startTour() {
+  tourStep = 0;
+  // build dots
+  const dots = document.getElementById('tour-dots');
+  dots.innerHTML = TOUR_STEPS.map((_, i) =>
+    `<div class="tour-dot${i === 0 ? ' active' : ''}" id="tour-dot-${i}"></div>`
+  ).join('');
+  showTourStep();
 }
-setInterval(updateClock, 1000);
+
+function showTourStep() {
+  const step = TOUR_STEPS[tourStep];
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const hl   = document.getElementById('tour-highlight');
+  const card = document.getElementById('tour-card');
+
+  document.getElementById('tour-overlay').classList.remove('hidden');
+  document.getElementById('tour-prev').disabled    = tourStep === 0;
+  document.getElementById('tour-next').textContent = tourStep === TOUR_STEPS.length - 1 ? 'Finish ✓' : 'Next →';
+  document.querySelectorAll('.tour-dot').forEach((d, i) => d.classList.toggle('active', i === tourStep));
+
+  card.classList.remove('hidden', 'arrow-top', 'arrow-bottom', 'arrow-left', 'arrow-right', 'tour-intro');
+
+  // ── Intro slide (no target element) ──────────────────
+  if (step.intro) {
+    hl.classList.add('hidden');
+    document.getElementById('tour-overlay').classList.add('dark');
+    card.classList.add('tour-intro');
+    document.getElementById('tour-title').innerHTML =
+      `<span style="font-size:22px;font-weight:700;color:var(--ice)">BIWA</span>
+       <div style="font-size:11px;font-weight:400;color:var(--text-muted);margin-top:2px;letter-spacing:0.04em">Berchtesgaden Integrated Warning System</div>`;
+    document.getElementById('tour-text').innerHTML =
+      `<p style="margin-bottom:12px">An operational weather monitoring dashboard combining live sensor data, 7-day history and spatial hazard layers for the Berchtesgaden region.</p>
+       <p style="margin-bottom:10px">Developed as part of <strong>SDI Service Implementation</strong> at the <strong>University of Salzburg — Z_GIS</strong>.</p>
+       <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Authors</div>
+       <div style="display:flex;flex-direction:column;gap:4px;">
+         <span style="font-size:12px;color:var(--text-primary);font-weight:500">Mary Muthee</span>
+         <span style="font-size:12px;color:var(--text-primary);font-weight:500">Asad Ullah</span>
+         <span style="font-size:12px;color:var(--text-primary);font-weight:500">Louis Schmalisch</span>
+       </div>`;
+    card.style.left = Math.round((vw - 360) / 2) + 'px';
+    card.style.top  = Math.round((vh - 340) / 2) + 'px';
+    return;
+  }
+
+  // ── Normal step (highlight a target element) ─────────
+  document.getElementById('tour-overlay').classList.remove('dark');
+  const target = document.querySelector(step.selector);
+  if (!target) { tourNext(); return; }
+
+  const PAD  = 8;
+  const rect = target.getBoundingClientRect();
+
+  hl.style.left   = (rect.left   - PAD) + 'px';
+  hl.style.top    = (rect.top    - PAD) + 'px';
+  hl.style.width  = (rect.width  + PAD * 2) + 'px';
+  hl.style.height = (rect.height + PAD * 2) + 'px';
+  hl.classList.remove('hidden');
+
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-text').textContent  = step.text;
+
+  const CARD_W = 300, CARD_H = 210, GAP = 16;
+  let left, top, arrowClass;
+
+  if (step.position === 'bottom' || rect.top < vh / 2) {
+    top = rect.bottom + PAD + GAP;
+    left = Math.max(8, Math.min(rect.left - PAD, vw - CARD_W - 8));
+    arrowClass = 'arrow-top';
+  } else if (step.position === 'top' || rect.bottom > vh * 0.6) {
+    top = rect.top - PAD - GAP - CARD_H;
+    left = Math.max(8, Math.min(rect.left - PAD, vw - CARD_W - 8));
+    arrowClass = 'arrow-bottom';
+  } else if (step.position === 'right') {
+    left = rect.right + PAD + GAP;
+    top  = Math.max(8, rect.top - PAD);
+    arrowClass = 'arrow-left';
+  } else {
+    left = rect.left - PAD - GAP - CARD_W;
+    top  = Math.max(8, rect.top - PAD);
+    arrowClass = 'arrow-right';
+  }
+
+  left = Math.max(8, Math.min(left, vw - CARD_W - 8));
+  top  = Math.max(8, Math.min(top,  vh - CARD_H - 8));
+
+  card.style.left = left + 'px';
+  card.style.top  = top  + 'px';
+  card.classList.add(arrowClass);
+}
+
+function tourNext() {
+  if (tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+  tourStep++;
+  showTourStep();
+}
+
+function tourPrev() {
+  if (tourStep <= 0) return;
+  tourStep--;
+  showTourStep();
+}
+
+function tourEnd() {
+  document.getElementById('tour-overlay').classList.add('hidden');
+  document.getElementById('tour-highlight').classList.add('hidden');
+  document.getElementById('tour-card').classList.add('hidden');
+}
 
 /* ── FULLSCREEN ───────────────────────────────────────── */
 document.getElementById('fs-btn').addEventListener('click', () => {
@@ -974,12 +2108,63 @@ document.getElementById('fs-btn').addEventListener('click', () => {
 });
 
 /* ── BOOT ─────────────────────────────────────────────── */
-map.addLayer(slideLayers.alpenwetter);
 showAlpenTicker();
-loadLiveStations();
-loadAllHistory();
+liveWMS.addTo(map);
+updateLegend();
+startTour();
+
+/* ── WMS GetFeatureInfo on map click ──────────────────── */
+map.on('click', async (e) => {
+  const activeKeys = Object.entries(slideState).filter(([, v]) => v).map(([k]) => k);
+  if (!activeKeys.length) return;
+
+  const size   = map.getSize();
+  const bounds = map.getBounds();
+  const sw     = L.CRS.EPSG3857.project(bounds.getSouthWest());
+  const ne     = L.CRS.EPSG3857.project(bounds.getNorthEast());
+  const bbox   = `${sw.x},${sw.y},${ne.x},${ne.y}`;
+  const pt     = map.latLngToContainerPoint(e.latlng);
+
+  const results = await Promise.all(activeKeys.map(async key => {
+    const info = LEGEND_LAYERS[key];
+    if (!info) return null;
+    const url = `${GS}/wms?SERVICE=WMS&VERSION=1.1.0&REQUEST=GetFeatureInfo` +
+      `&LAYERS=${info.id}&QUERY_LAYERS=${info.id}` +
+      `&BBOX=${bbox}&WIDTH=${size.x}&HEIGHT=${size.y}` +
+      `&SRS=EPSG:3857&X=${Math.round(pt.x)}&Y=${Math.round(pt.y)}` +
+      `&INFO_FORMAT=application/json&FEATURE_COUNT=5`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const json = await res.json();
+      if (!json.features?.length) return null;
+      return { label: info.label, features: json.features };
+    } catch { return null; }
+  }));
+
+  const hits = results.filter(Boolean);
+  if (!hits.length) return;
+
+  const content = hits.map(({ label, features }) => {
+    const rows = features.map(f =>
+      Object.entries(f.properties)
+        .filter(([, v]) => v != null && v !== '')
+        .map(([k, v]) => `<div class="popup-row"><span class="pk">${k}</span><span class="pv">${typeof v === 'number' ? Number(v).toFixed(4).replace(/\.?0+$/, '') : v}</span></div>`)
+        .join('')
+    ).join('<div style="border-top:1px solid rgba(255,255,255,0.1);margin:4px 0"></div>');
+    return `<div class="popup-title">${label}</div>${rows}`;
+  }).join('<div style="border-top:1px solid rgba(255,255,255,0.2);margin:6px 0"></div>');
+
+  L.popup({ className: 'biwa-popup', maxWidth: 320 })
+    .setLatLng(e.latlng)
+    .setContent(`<div style="max-height:300px;overflow-y:auto;padding-right:2px">${content}</div>`)
+    .openOn(map);
+});
+
+loadAllHistory().then(loadLiveStations);
 setInterval(loadLiveStations, 60_000);
 setTimeout(() => map.invalidateSize(), 200);
 </script>
+<div id="chart-tooltip"></div>
 </body>
 </html>
