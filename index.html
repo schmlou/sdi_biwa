@@ -888,13 +888,19 @@ const STATION_NAMES = {
 function stationName(gridId) { return STATION_NAMES[+gridId] ?? `Station ${gridId}`; }
 
 /* ── THRESHOLDS ─────────────────────────────────────── */
+// Guzzetti et al. 2007, Meteorol. Atmos. Phys. 98:239-267 —
+// highland-climate ED threshold P = 7.56 * D^0.52 ≈ 110 mm at 7 days (168 h)
+const PRECIP_7D_ELEVATED = 110; // mm — elevated / warn level
+const PRECIP_7D_HIGH     = 160; // mm — high / alert level
+
 const THR = {
-  precip_7d:  { warn: 50,  alert: 100 }, // mm accumulated over 7 days
+  precip_7d:  { warn: PRECIP_7D_ELEVATED, alert: PRECIP_7D_HIGH },
   wind_gusts: { warn: 80,  alert: 120 },
   snow_depth: { warn: 100, alert: 200 },
 };
 
-const accumPrecip = {}; // keyed by station id, filled by loadAllHistory
+const accumPrecip           = {}; // keyed by station id, filled by loadAllHistory
+const accumPrecipIncomplete = new Set(); // station ids where ≥1 hourly bucket had null precipitation
 
 function getStatus(props) {
   const id    = props[GRID_ID_FIELD];
@@ -1236,12 +1242,13 @@ function buildThresholdPanel(props) {
     const gusts = p.wind_gusts != null ? Number(p.wind_gusts) : null;
     const snow  = p.snow_depth != null ? Number(p.snow_depth) : null;
 
+    const isIncomplete = accumPrecipIncomplete.has(id);
     const precipSt = accum >= THR.precip_7d.alert  ? 'alert' : accum >= THR.precip_7d.warn  ? 'warn' : 'ok';
     const gustsSt  = gusts != null ? (gusts >= THR.wind_gusts.alert ? 'alert' : gusts >= THR.wind_gusts.warn ? 'warn' : 'ok') : null;
     const snowSt   = snow  != null ? (snow  >= THR.snow_depth.alert ? 'alert' : snow  >= THR.snow_depth.warn ? 'warn' : 'ok') : null;
 
     const precipCell = `<div class="thr-bar-wrap">
-      <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm</span>
+      <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm${isIncomplete ? '<span title="Partial data — some hours missing, treated as 0 mm" style="color:var(--text-muted);font-size:9px;font-weight:400"> *</span>' : ''}</span>
       ${thresholdBar(accum, THR.precip_7d.warn, THR.precip_7d.alert)}
     </div>`;
     const gustsCell  = gusts != null
@@ -1259,6 +1266,7 @@ function buildThresholdPanel(props) {
     </tr>`;
   }).join('');
 
+  const anyIncomplete = props.some(p => accumPrecipIncomplete.has(String(p[GRID_ID_FIELD])));
   const legend = `<div class="thr-legend">
     <div class="thr-legend-title">Thresholds</div>
     <div class="thr-legend-grid">
@@ -1281,6 +1289,8 @@ function buildThresholdPanel(props) {
         <span class="thr-leg-band alert">≥ ${THR.snow_depth.alert} cm</span>
       </div>
     </div>
+    ${anyIncomplete ? '<div style="font-size:9px;color:var(--text-muted);margin-top:8px">* Partial precipitation data — missing hours treated as 0 mm</div>' : ''}
+    <div style="font-size:9px;color:var(--text-muted);margin-top:6px;font-style:italic">Precip thresholds: Guzzetti et al. (2007), <i>Meteorol. Atmos. Phys.</i> 98:239–267</div>
   </div>`;
 
   return `<table class="thr-table">
@@ -1844,14 +1854,21 @@ async function loadAllHistory() {
     // Compute 7-day precipitation total per station from hourly aggregates to avoid
     // double-counting when sub-hourly measurements each carry the same precipitation_1h value.
     Object.keys(accumPrecip).forEach(k => delete accumPrecip[k]);
+    accumPrecipIncomplete.clear();
     stationIds.forEach(sid => {
       const stRows = rows.filter(r => String(r[GRID_ID_FIELD]) === String(sid));
       const hourly = aggregateByHour(stRows);
       const precipCol = ('precipitation_1h' in (stRows[0] ?? {})) ? 'precipitation_1h' : 'precipitation';
+      let hasNullBucket = !hourly.length; // no rows at all → incomplete
       hourly.forEach(r => {
         const v = r[precipCol];
-        if (v != null && !isNaN(v)) accumPrecip[sid] = (accumPrecip[sid] ?? 0) + Number(v);
+        if (v != null && !isNaN(v)) {
+          accumPrecip[sid] = (accumPrecip[sid] ?? 0) + Number(v);
+        } else {
+          hasNullBucket = true; // null hour treated as 0 but flagged
+        }
       });
+      if (hasNullBucket) accumPrecipIncomplete.add(String(sid));
     });
 
     const nStations = stationIds.length;
