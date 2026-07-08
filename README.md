@@ -1,5 +1,7 @@
 # SDI_IWS
 
+Dashboard: https://schmlou.github.io/sdi_biwa/
+
 ## Mission Statement
 
 This project is part of the Masters study program in "Applied Geoinformatics" and "Copernicus Master in Digital Earth" at the Z_GIS (Paris-Lodron University Salzburg). In the course "SDI Implementation" and the "GI/EO Project Management"-course support the planing and implementation of an SDI. The idea of creating an integrated warning system for the cross-border alpine region of "Berchtesgaden" and "Salzburger Land" was developed by the students.  
