@@ -184,23 +184,30 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .layer-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--text-muted); transition: all 0.2s; }
 .layer-item.active .layer-toggle { background: var(--ice-dim); border-color: var(--ice); }
 .layer-item.active .layer-toggle::after { left: 15px; background: var(--ice); }
-.layer-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .layer-name { font-size: 12px; font-weight: 500; }
 .layer-src  { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
 /* ── TRAY STATION TILES ─────────────────────────────── */
 /* ── TRAY STATION ACCORDION ─────────────────────────── */
 #tray-stations {
-  display: flex; flex-direction: row; align-items: stretch;
-  flex-shrink: 0; border-right: 1px solid var(--border); overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr 1fr;
+  flex-shrink: 0; width: 360px;
+  border-right: 1px solid var(--border); overflow: hidden;
+  align-self: stretch;
+}
+/* when a tile is selected: col 1 is fixed for the expanded tile, cols 2-4 hold the rest */
+#tray-stations:has(.st-tile.selected) {
+  grid-template-columns: 154px repeat(3, 1fr);
 }
 
-/* inactive strip */
+/* inactive tile */
 .st-tile {
-  flex: 1; min-width: 80px;
+  min-width: 0;
   background: var(--bg-card); border-right: 1px solid var(--border);
   cursor: pointer; position: relative; overflow: hidden;
-  transition: flex-basis 0.25s ease, width 0.25s ease, background 0.15s;
+  transition: background 0.15s;
   display: flex; align-items: center; justify-content: center;
   padding: 8px;
 }
@@ -218,18 +225,18 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
   line-height: 1.4;
 }
 
-/* expanded (selected) tile */
+/* expanded (selected) tile — pinned to col 1, spans both rows */
 .st-tile.selected {
-  flex: 0 0 220px; width: 220px;
+  grid-column: 1;
+  grid-row: 1 / span 2;
   border-color: var(--ice); background: var(--bg-hover);
   flex-direction: column; align-items: flex-start;
   justify-content: flex-start; padding: 10px 14px;
-  overflow-y: auto; min-width: unset;
+  overflow-y: auto;
 }
 .st-tile.selected .st-name {
-  writing-mode: horizontal-tb; transform: none;
   font-size: 12px; font-weight: 700; color: var(--ice);
-  margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; width: 100%;
+  margin-bottom: 8px; overflow: hidden; width: 100%;
   flex-shrink: 0;
 }
 
@@ -313,7 +320,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
   flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;
 }
 #tray-label .tl-title { font-size: 9px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
-#tray-label .tl-sub   { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 #tray-label .tl-hint  { font-size: 10px; color: var(--text-muted); font-style: italic; }
 #tray-label .tl-range { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
 #chart-col-btn {
@@ -349,11 +355,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
 .tc-value { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
 .tc-canvas-wrap { flex: 1; position: relative; min-height: 0; }
 .tc-canvas-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-.tc-threshold-line {
-  position: absolute; left: 0; right: 0; border-top: 1px dashed;
-  font-size: 9px; font-family: var(--font-mono); padding-left: 4px;
-  line-height: 0; padding-top: 2px; pointer-events: none;
-}
 #chart-tooltip {
   position: fixed; display: none; z-index: 9999; pointer-events: none;
   background: var(--bg-card); color: var(--text-primary);
@@ -605,14 +606,12 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
       <div>
         <div class="layer-item active" id="toggle-live" onclick="toggleLayer('live', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#4fc3f7"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Live stations</div>
           </div>
         </div>
         <div class="layer-item" id="toggle-aspect" onclick="toggleSlide('aspect', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Aspect</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -623,7 +622,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-buildings" onclick="toggleSlide('buildings', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#f59e0b"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Buildings</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -634,7 +632,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-dem" onclick="toggleSlide('dem', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Digital Elevation Model (DEM)</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -645,7 +642,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-hazard" onclick="toggleSlide('hazard', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Hazard Zones</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -662,7 +658,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-hillshade" onclick="toggleSlide('hillshade', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#64748b"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Hillshade</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -673,7 +668,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-protected" onclick="toggleSlide('protected', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Protected Areas</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -684,7 +678,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-roads" onclick="toggleSlide('roads', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#3b82f6"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Roads</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -695,7 +688,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-species" onclick="toggleSlide('species', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#ef4444"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Species Occurrence</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -706,7 +698,6 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
         </div>
         <div class="layer-item" id="toggle-slope" onclick="toggleSlide('slope', this)">
           <div class="layer-toggle"></div>
-          <div class="layer-swatch" style="background:#6b7280"></div>
           <div style="flex:1;min-width:0">
             <div class="layer-name">Slope</div>
             <div class="layer-opacity-row" onclick="event.stopPropagation()">
@@ -888,13 +879,19 @@ const STATION_NAMES = {
 function stationName(gridId) { return STATION_NAMES[+gridId] ?? `Station ${gridId}`; }
 
 /* ── THRESHOLDS ─────────────────────────────────────── */
+// Guzzetti et al. 2007, Meteorol. Atmos. Phys. 98:239-267 —
+// highland-climate ED threshold P = 7.56 * D^0.52 ≈ 110 mm at 7 days (168 h)
+const PRECIP_7D_ELEVATED = 110; // mm — elevated / warn level
+const PRECIP_7D_HIGH     = 160; // mm — high / alert level
+
 const THR = {
-  precip_7d:  { warn: 50,  alert: 100 }, // mm accumulated over 7 days
+  precip_7d:  { warn: PRECIP_7D_ELEVATED, alert: PRECIP_7D_HIGH },
   wind_gusts: { warn: 80,  alert: 120 },
   snow_depth: { warn: 100, alert: 200 },
 };
 
-const accumPrecip = {}; // keyed by station id, filled by loadAllHistory
+const accumPrecip           = {}; // keyed by station id, filled by loadAllHistory
+const accumPrecipIncomplete = new Set(); // station ids where ≥1 hourly bucket had null precipitation
 
 function getStatus(props) {
   const id    = props[GRID_ID_FIELD];
@@ -1236,12 +1233,13 @@ function buildThresholdPanel(props) {
     const gusts = p.wind_gusts != null ? Number(p.wind_gusts) : null;
     const snow  = p.snow_depth != null ? Number(p.snow_depth) : null;
 
+    const isIncomplete = accumPrecipIncomplete.has(id);
     const precipSt = accum >= THR.precip_7d.alert  ? 'alert' : accum >= THR.precip_7d.warn  ? 'warn' : 'ok';
     const gustsSt  = gusts != null ? (gusts >= THR.wind_gusts.alert ? 'alert' : gusts >= THR.wind_gusts.warn ? 'warn' : 'ok') : null;
     const snowSt   = snow  != null ? (snow  >= THR.snow_depth.alert ? 'alert' : snow  >= THR.snow_depth.warn ? 'warn' : 'ok') : null;
 
     const precipCell = `<div class="thr-bar-wrap">
-      <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm</span>
+      <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm${isIncomplete ? '<span title="Partial data — some hours missing, treated as 0 mm" style="color:var(--text-muted);font-size:9px;font-weight:400"> *</span>' : ''}</span>
       ${thresholdBar(accum, THR.precip_7d.warn, THR.precip_7d.alert)}
     </div>`;
     const gustsCell  = gusts != null
@@ -1259,6 +1257,7 @@ function buildThresholdPanel(props) {
     </tr>`;
   }).join('');
 
+  const anyIncomplete = props.some(p => accumPrecipIncomplete.has(String(p[GRID_ID_FIELD])));
   const legend = `<div class="thr-legend">
     <div class="thr-legend-title">Thresholds</div>
     <div class="thr-legend-grid">
@@ -1281,6 +1280,8 @@ function buildThresholdPanel(props) {
         <span class="thr-leg-band alert">≥ ${THR.snow_depth.alert} cm</span>
       </div>
     </div>
+    ${anyIncomplete ? '<div style="font-size:9px;color:var(--text-muted);margin-top:8px">* Partial precipitation data — missing hours treated as 0 mm</div>' : ''}
+    <div style="font-size:9px;color:var(--text-muted);margin-top:6px;font-style:italic">Precip thresholds: Guzzetti et al. (2007), <i>Meteorol. Atmos. Phys.</i> 98:239–267</div>
   </div>`;
 
   return `<table class="thr-table">
@@ -1343,8 +1344,7 @@ function stationSummaryHTML() {
 
 function renderStationCards(props) {
   lastLiveProps = props;
-  const ORDER = { alert: 0, warn: 1, ok: 2 };
-  const sorted = [...props].sort((a, b) => ORDER[getStatus(a)] - ORDER[getStatus(b)]);
+  const sorted = [...props].sort((a, b) => Number(a[GRID_ID_FIELD]) - Number(b[GRID_ID_FIELD]));
 
   const container = document.getElementById('tray-stations');
   container.innerHTML = sorted.map(p => {
@@ -1403,9 +1403,6 @@ function selectStation(gridId) {
   loadStationHistory(gridId);
 }
 
-function highlightCard(gridId) {
-  // visual highlight handled by renderStationCards re-render
-}
 
 /* ── HISTORY WFS (7-day time series) ─────────────────── */
 const SKIP_PROPS  = new Set(['grid_id','station_id','id','fid','source','geom','geometry','the_geom']);
@@ -1844,14 +1841,21 @@ async function loadAllHistory() {
     // Compute 7-day precipitation total per station from hourly aggregates to avoid
     // double-counting when sub-hourly measurements each carry the same precipitation_1h value.
     Object.keys(accumPrecip).forEach(k => delete accumPrecip[k]);
+    accumPrecipIncomplete.clear();
     stationIds.forEach(sid => {
       const stRows = rows.filter(r => String(r[GRID_ID_FIELD]) === String(sid));
       const hourly = aggregateByHour(stRows);
       const precipCol = ('precipitation_1h' in (stRows[0] ?? {})) ? 'precipitation_1h' : 'precipitation';
+      let hasNullBucket = !hourly.length; // no rows at all → incomplete
       hourly.forEach(r => {
         const v = r[precipCol];
-        if (v != null && !isNaN(v)) accumPrecip[sid] = (accumPrecip[sid] ?? 0) + Number(v);
+        if (v != null && !isNaN(v)) {
+          accumPrecip[sid] = (accumPrecip[sid] ?? 0) + Number(v);
+        } else {
+          hasNullBucket = true; // null hour treated as 0 but flagged
+        }
       });
+      if (hasNullBucket) accumPrecipIncomplete.add(String(sid));
     });
 
     const nStations = stationIds.length;
