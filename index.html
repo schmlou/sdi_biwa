@@ -630,6 +630,16 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
             </div>
           </div>
         </div>
+        <div class="layer-item" id="toggle-lulc" onclick="toggleSlide('lulc', this)">
+          <div class="layer-toggle"></div>
+          <div style="flex:1;min-width:0">
+            <div class="layer-name">CORINE Landcover 2018</div>
+            <div class="layer-opacity-row" onclick="event.stopPropagation()">
+              <input type="range" class="opacity-slider" min="0" max="1" step="0.05" value="0.7" oninput="setLayerOpacity('lulc',+this.value,this)">
+              <span class="opacity-pct">70%</span>
+            </div>
+          </div>
+        </div>
         <div class="layer-item" id="toggle-dem" onclick="toggleSlide('dem', this)">
           <div class="layer-toggle"></div>
           <div style="flex:1;min-width:0">
@@ -887,7 +897,6 @@ const PRECIP_7D_HIGH     = 160; // mm — high / alert level
 const THR = {
   precip_7d:  { warn: PRECIP_7D_ELEVATED, alert: PRECIP_7D_HIGH },
   wind_gusts: { warn: 80,  alert: 120 },
-  snow_depth: { warn: 100, alert: 200 },
 };
 
 const accumPrecip           = {}; // keyed by station id, filled by loadAllHistory
@@ -941,6 +950,8 @@ const slideLayers = {
     layers: 'ipsdi_st26:roads_32n', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
   slope: L.tileLayer.wms(`${GS}/wms`, {
     layers: 'ipsdi_st26:slope_berchtesgaden_2', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
+  lulc: L.tileLayer.wms(`${GS}/ipsdi_st26/wms`, {
+    layers: 'ipsdi_st26:LULC', format: 'image/png', transparent: true, version: '1.1.0', attribution: 'GeoServer', opacity: 0.7}),
 };
 
 const map = L.map('map', { center: [47.557373, 12.946258], zoom: 11, layers: [basemaps.terrestris], zoomControl: false });
@@ -975,6 +986,7 @@ const slideState = {
   protected: false,
   roads: false,
   slope: false,
+  lulc: false,
 };
 const layerState = { live: true };
 
@@ -1004,6 +1016,7 @@ const LEGEND_LAYERS = {
   protected:  { label: 'Protected Areas',       id: 'ipsdi_st26:protected_areas_Berchtesgaden' },
   roads:      { label: 'Roads',                 id: 'ipsdi_st26:roads_32n' },
   slope:      { label: 'Slope',                 id: 'ipsdi_st26:slope_berchtesgaden_2' },
+  lulc:       { label: 'CORINE Landcover 2018', id: 'ipsdi_st26:LULC' },
   live:       { label: 'Weather Stations',      id: 'ipsdi_st26:sdi_weather_live' },
 };
 
@@ -1137,7 +1150,6 @@ async function loadLiveStations() {
           <div class="popup-row"><span class="pk">Temperature</span><span class="pv">${fmt(p.temperature_2m)} °C</span></div>
           <div class="popup-row"><span class="pk">Precipitation</span><span class="pv">${fmt(p.precipitation_1h)} mm</span></div>
           <div class="popup-row"><span class="pk">Wind gusts</span><span class="pv">${fmt(p.wind_gusts, 0)} km/h</span></div>
-          <div class="popup-row"><span class="pk">Snow depth</span><span class="pv">N/A</span></div>
           <div class="popup-row"><span class="pk">Soil moisture</span><span class="pv">N/A</span></div>
           <div class="popup-row"><span class="pk">Updated</span><span class="pv">${fmtTime(p.timestamp)}</span></div>
         `, { className: 'biwa-popup' });
@@ -1231,12 +1243,10 @@ function buildThresholdPanel(props) {
     const rowSt = getStatus(p);
     const accum = accumPrecip[id] ?? 0;
     const gusts = p.wind_gusts != null ? Number(p.wind_gusts) : null;
-    const snow  = p.snow_depth != null ? Number(p.snow_depth) : null;
 
     const isIncomplete = accumPrecipIncomplete.has(id);
     const precipSt = accum >= THR.precip_7d.alert  ? 'alert' : accum >= THR.precip_7d.warn  ? 'warn' : 'ok';
     const gustsSt  = gusts != null ? (gusts >= THR.wind_gusts.alert ? 'alert' : gusts >= THR.wind_gusts.warn ? 'warn' : 'ok') : null;
-    const snowSt   = snow  != null ? (snow  >= THR.snow_depth.alert ? 'alert' : snow  >= THR.snow_depth.warn ? 'warn' : 'ok') : null;
 
     const precipCell = `<div class="thr-bar-wrap">
       <span class="thr-cell ${precipSt}">${accum.toFixed(1)} mm${isIncomplete ? '<span title="Partial data — some hours missing, treated as 0 mm" style="color:var(--text-muted);font-size:9px;font-weight:400"> *</span>' : ''}</span>
@@ -1245,15 +1255,11 @@ function buildThresholdPanel(props) {
     const gustsCell  = gusts != null
       ? `<div class="thr-bar-wrap"><span class="thr-cell ${gustsSt}">${gusts.toFixed(0)} km/h</span>${thresholdBar(gusts, THR.wind_gusts.warn, THR.wind_gusts.alert)}</div>`
       : `<span class="thr-cell na">—</span>`;
-    const snowCell   = snow  != null
-      ? `<div class="thr-bar-wrap"><span class="thr-cell ${snowSt}">${snow.toFixed(0)} cm</span>${thresholdBar(snow, THR.snow_depth.warn, THR.snow_depth.alert)}</div>`
-      : `<span class="thr-cell na">—</span>`;
 
     return `<tr class="thr-row ${rowSt}">
       <td class="thr-station">${stationName(id)}</td>
       <td>${precipCell}</td>
       <td>${gustsCell}</td>
-      <td>${snowCell}</td>
     </tr>`;
   }).join('');
 
@@ -1273,12 +1279,6 @@ function buildThresholdPanel(props) {
         <span class="thr-leg-sep">·</span>
         <span class="thr-leg-band alert">≥ ${THR.wind_gusts.alert} km/h</span>
       </div>
-      <div class="thr-leg-item">
-        <span class="thr-leg-label">Snow Depth</span>
-        <span class="thr-leg-band warn">≥ ${THR.snow_depth.warn} cm</span>
-        <span class="thr-leg-sep">·</span>
-        <span class="thr-leg-band alert">≥ ${THR.snow_depth.alert} cm</span>
-      </div>
     </div>
     ${anyIncomplete ? '<div style="font-size:9px;color:var(--text-muted);margin-top:8px">* Partial precipitation data — missing hours treated as 0 mm</div>' : ''}
     <div style="font-size:9px;color:var(--text-muted);margin-top:6px;font-style:italic">Precip thresholds: Guzzetti et al. (2007), <i>Meteorol. Atmos. Phys.</i> 98:239–267</div>
@@ -1289,7 +1289,6 @@ function buildThresholdPanel(props) {
       <th>Station</th>
       <th style="text-align:right">Precip 7d</th>
       <th style="text-align:right">Wind Gusts</th>
-      <th style="text-align:right">Snow Depth</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table>${legend}`;
@@ -1356,11 +1355,9 @@ function renderStationCards(props) {
       const temp  = p.temperature_2m ?? p.temperature;
       const prec  = p.precipitation_1h ?? p.precipitation;
       const gusts = p.wind_gusts;
-      const snow  = p.snow_depth;
       const tempVal  = temp  != null ? `${fmt(temp)}<span class="st-cu">°C</span>`   : '<span style="opacity:.4">N/A</span>';
       const precVal  = prec  != null ? `${fmt(prec)}<span class="st-cu">mm</span>`   : '<span style="opacity:.4">N/A</span>';
       const gustVal  = gusts != null ? `${fmt(gusts,0)}<span class="st-cu">km/h</span>` : '<span style="opacity:.4">N/A</span>';
-      const snowVal  = snow  != null ? `${fmt(snow)}<span class="st-cu">cm</span>`   : '<span style="opacity:.4">N/A</span>';
       return `<div class="st-tile ${status} selected" id="card-${id}" onclick="selectStation('${id}')">
         <div class="st-head">
           <div class="st-name">${stationName(id)}</div>
@@ -1370,7 +1367,6 @@ function renderStationCards(props) {
           <div><div class="st-cl">TEMP</div><div class="st-cv">${tempVal}</div></div>
           <div><div class="st-cl">PRECIP</div><div class="st-cv">${precVal}</div></div>
           <div><div class="st-cl">WIND</div><div class="st-cv">${gustVal}</div></div>
-          <div><div class="st-cl">SNOW</div><div class="st-cv">${snowVal}</div></div>
         </div>
         ${stationSummaryHTML()}
         <div class="st-time">Last reading: ${p.timestamp ? fmtTime(p.timestamp) : '—'}</div>
@@ -1405,7 +1401,7 @@ function selectStation(gridId) {
 
 
 /* ── HISTORY WFS (7-day time series) ─────────────────── */
-const SKIP_PROPS  = new Set(['grid_id','station_id','id','fid','source','geom','geometry','the_geom']);
+const SKIP_PROPS  = new Set(['grid_id','station_id','id','fid','source','geom','geometry','the_geom','snow_depth']);
 const HIST_COLORS = ['#C03030','#1A6A9A','#A86510','#2E8B50','#B05520','#1A7A8A','#7055C0','#5A7A20'];
 const BAR_COLS    = new Set(['precipitation_1h','precipitation']);
 
@@ -1417,7 +1413,6 @@ const COLUMN_UNITS = {
   wind_gusts:        'km/h',
   wind_speed:        'km/h',
   wind_direction:    '°',
-  snow_depth:        'cm',
   soil_moisture:     'm³/m³',
   pressure:          'hPa',
   humidity:          '%',
@@ -1955,7 +1950,7 @@ const TOUR_STEPS = [
   {
     selector: '#alert-level',
     title: 'Hazard Level',
-    text: 'Shows the overall warning status based on current sensor readings. Click it to open a detailed breakdown of threshold values per station — precipitation, wind gusts, and snow depth.',
+    text: 'Shows the overall warning status based on current sensor readings. Click it to open a detailed breakdown of threshold values per station — precipitation and wind gusts.',
     position: 'bottom',
   },
   // ── 3. Down the left → Map Layers ────────────────────
@@ -1976,7 +1971,7 @@ const TOUR_STEPS = [
   {
     selector: '#tray-stations',
     title: 'Weather Stations',
-    text: 'Each tile represents one station. Click a tile to expand it and see live readings (temperature, precipitation, wind, snow) and a 7-day statistical summary. Click again to collapse.',
+    text: 'Each tile represents one station. Click a tile to expand it and see live readings (temperature, precipitation, wind) and a 7-day statistical summary. Click again to collapse.',
     position: 'top',
   },
   // ── 6. Bottom-right → Charts ─────────────────────────
