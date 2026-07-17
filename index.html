@@ -817,6 +817,12 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-deep); color: 
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--text-secondary);">CORINE Landcover 2018</span>
+          <div style="display:flex;gap:6px;">
+            <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/ipsdi_st26/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26%3ALULC&bbox=777646.9033%2C5254874.8016%2C818902.8173%2C5298634.1084&width=724&height=768&srs=EPSG%3A25832&styles=&format=application/openlayers" target="_blank">Link</a>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
           <span style="color:var(--text-secondary);">Digital Elevation Model</span>
           <div style="display:flex;gap:6px;">
             <a class="about-link-btn about-link-text" href="https://geoserver22s.zgis.at/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ipsdi_st26:dem_berchtesgaden_merged&bbox=12.439,47.327,13.317,47.812&width=768&height=512&srs=EPSG:4326&format=application/openlayers" target="_blank">Link</a>
@@ -1413,10 +1419,6 @@ const COLUMN_UNITS = {
   wind_gusts:        'km/h',
   wind_speed:        'km/h',
   wind_direction:    '°',
-  soil_moisture:     'm³/m³',
-  pressure:          'hPa',
-  humidity:          '%',
-  radiation:         'W/m²',
 };
 
 function fmtColName(k) {
