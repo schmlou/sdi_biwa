@@ -1,3 +1,7 @@
+##Disclaimer
+The data for this project was stored on the Z_GIS geoserver, including the NodeRed automated API queries. They are no longer available, due to the university deleting them!
+
+
 # SDI_IWS
 
 Dashboard: https://schmlou.github.io/sdi_biwa/
