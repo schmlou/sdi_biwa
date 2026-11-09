@@ -14,10 +14,11 @@ The Alpine Region, especially the transboundary area encompassing “Nationalpar
 
 Open-source, hazard map, harmonization
 
-## Authors
-
-Mary Muthee (MSc Copernicus Master in Digital Earth),
+## Main Author
 Louis Schmalisch (MSc Applied Geoinformatics),
+
+## Project Staff
+Mary Muthee (MSc Copernicus Master in Digital Earth),
 Ullah Asad (MSc Applied Geoinformatics)
 
 ## Project plan
